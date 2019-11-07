@@ -30,88 +30,115 @@
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/header_toolbar"
         >
 
         <TextView
+            android:id="@+id/monday"
+            android:text="@string/monday_string"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Mon"
+            android:clickable="true"
+            android:focusable="true"
             android:textStyle="bold"
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="#000000"
+            android:textColor="@color/selectedDayColour"
+            android:layout_weight="1"
+            android:padding="12dp"
+            android:background="@drawable/day_selected"
+            />
+
+        <TextView
+            android:id="@+id/tuesday"
+            android:text="@string/tuesday_string"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clickable="true"
+            android:focusable="true"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:textColor="@color/dayTextColour"
+            android:padding="12dp"
             android:layout_weight="1"
             />
 
         <TextView
+            android:id="@+id/wednesday"
+            android:text="@string/wednesday_string"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Tue"
+            android:clickable="true"
+            android:focusable="true"
             android:textStyle="bold"
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="#000000"
+            android:textColor="@color/dayTextColour"
+            android:padding="12dp"
             android:layout_weight="1"
             />
 
         <TextView
+            android:id="@+id/thursday"
+            android:text="@string/thursday_string"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Wed"
+            android:clickable="true"
+            android:focusable="true"
             android:textStyle="bold"
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="#000000"
+            android:textColor="@color/dayTextColour"
+            android:padding="12dp"
             android:layout_weight="1"
             />
 
         <TextView
+            android:id="@+id/friday"
+            android:text="@string/friday_string"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Thu"
+            android:clickable="true"
+            android:focusable="true"
             android:textStyle="bold"
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="#000000"
+            android:textColor="@color/dayTextColour"
+            android:padding="12dp"
             android:layout_weight="1"
             />
 
         <TextView
+            android:id="@+id/saturday"
+            android:text="@string/saturday_string"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Fri"
+            android:clickable="true"
+            android:focusable="true"
             android:textStyle="bold"
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="#000000"
+            android:textColor="@color/dayTextColour"
+            android:padding="12dp"
             android:layout_weight="1"
             />
 
         <TextView
+            android:id="@+id/sunday"
+            android:text="@string/sunday_string"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Sat"
+            android:clickable="true"
+            android:focusable="true"
             android:textStyle="bold"
             android:textSize="16sp"
             android:gravity="center"
-            android:textColor="#000000"
-            android:layout_weight="1"
-            />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Sun"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="#000000"
-            android:layout_weight="1"
-            />
+            android:textColor="@color/dayTextColour"
+            android:padding="12dp"
+            android:layout_weight="1" />
 
     </LinearLayout>
 
@@ -120,12 +147,13 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:scrollbars="vertical"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/day_container"
-    />
+        app:layout_constraintTop_toBottomOf="@+id/day_container" />
 
     <FrameLayout
         android:id="@+id/container"
@@ -137,7 +165,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.756"
         tools:context=".MainActivity" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

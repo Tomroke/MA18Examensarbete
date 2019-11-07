@@ -1,6 +1,7 @@
 package com.example.ma18ea.Fragments
 
 import android.os.Bundle
+import android.system.Os.bind
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -24,8 +25,10 @@ class ReminderMainFragment : Fragment() {
 
     private val TAG : String = "RMFragment"
 
-    private var root: View? = null
+    private var frag: View? = null
     private lateinit var calculatation: Calculation
+
+    var timerButtonBG: Int = 1
 
     private var paramTitle: String? = null
     private var paramDesc: String? = null
@@ -57,14 +60,50 @@ class ReminderMainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        root = inflater.inflate(R.layout.fragment_reminder_main, container, false)
+        frag = inflater.inflate(R.layout.fragment_reminder_main, container, false)
+
+        val acceptButton = frag!!.findViewById(R.id.accept_button) as Button
+        var timerButton = frag!!.findViewById(R.id.timer_button) as Button
+        val deleteButton = frag!!.findViewById(R.id.delete_button) as Button
+
+        if(paramTitle.equals("newTitle")){
+            paramTitle = "Title"
+            timerButton.visibility = View.INVISIBLE
+            timerButton.isClickable = false
+            deleteButton.visibility = View.INVISIBLE
+            deleteButton.isClickable = false
+        }else{
+            timerButton.visibility = View.VISIBLE
+            timerButton.isClickable = true
+            deleteButton.visibility = View.VISIBLE
+            deleteButton.isClickable = true
+        }
+
+        acceptButton.setOnClickListener {
+                Log.d(TAG, "accept_button")
+        }
+
+        timerButton.setOnClickListener {
+            if (timerButtonBG == 1){
+                timerButtonBG = 0
+                timerButton.setBackgroundResource(R.drawable.timer_button_active)
+            }else{
+                timerButtonBG = 1
+                timerButton.setBackgroundResource(R.drawable.timer_button)
+            }
+
+            Log.d(TAG, "timerButton")
+        }
+
+        deleteButton.setOnClickListener {
+            Log.d(TAG, "deleteButton")
+        }
 
 
         var days = ""
-
-        root!!.title_reminder_txt.text = paramTitle
-        root!!.description_txt.setText(paramDesc)
-        root!!.progressbar_in_reminder.progress = this.paramProgress!!
+        frag!!.title_reminder_txt.text = paramTitle
+        frag!!.description_txt.setText(paramDesc)
+        frag!!.progressbar_in_reminder.progress = this.paramProgress!!
 
         for(item in paramDays!!){
             days += if(days == ""){
@@ -73,9 +112,9 @@ class ReminderMainFragment : Fragment() {
                 ", $item"
             }
         }
-        root!!.select_days_button.text = days
+        frag!!.select_days_button.text = days
 
-        return root
+        return frag
     }
 
     companion object {

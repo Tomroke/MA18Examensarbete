@@ -16,4 +16,11 @@
     <string name="open_settings">Open settings</string>
     <string name="open_diagrams">Open diagrams</string>
     <string name="close_menu">close menu</string>
+    <string name="monday_string">Mon</string>
+    <string name="tuesday_string">Tue</string>
+    <string name="wednesday_string">Wed</string>
+    <string name="thursday_string">Thu</string>
+    <string name="friday_string">Fri</string>
+    <string name="saturday_string">Sat</string>
+    <string name="sunday_string">Sun</string>
 </resources>
