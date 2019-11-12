@@ -1,8 +1,6 @@
 package com.example.ma18ea
 
 
-import android.graphics.Color
-import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -10,22 +8,16 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.animation.AnimationUtils
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.view.children
-import androidx.core.view.get
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ma18ea.Fragments.ReminderMainFragment
-import com.example.ma18ea.ui.main.MainRecyclerAdapter
-import kotlin.properties.Delegates
-import android.graphics.drawable.Drawable as Drawable1
-import kotlin.collections.Iterable as Iterable1
+import com.example.ma18ea.ui.RecyclerView.MainRecyclerAdapter
 
 
 class MainActivity : AppCompatActivity()
@@ -116,11 +108,13 @@ class MainActivity : AppCompatActivity()
 
 
     private fun dayItemSelected(item: TextView){
-        item.setBackgroundResource(R.drawable.day_selected)
-        item.setTextColor(resources.getColor(R.color.selectedDayColour))
-        previousDay.setBackgroundResource(R.drawable.day_deselected)
-        previousDay.setTextColor(resources.getColor(R.color.dayTextColour))
-        previousDay = item
+        if (item != previousDay){
+            item.setBackgroundResource(R.drawable.day_selected)
+            item.setTextColor(resources.getColor(R.color.selectedDayColour))
+            previousDay.setBackgroundResource(R.drawable.day_deselected)
+            previousDay.setTextColor(resources.getColor(R.color.dayTextColour))
+            previousDay = item
+        }
     }
 
 

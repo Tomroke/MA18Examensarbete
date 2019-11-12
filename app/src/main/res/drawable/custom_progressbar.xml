@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape
+            android:shape="rectangle">
+
+            <stroke
+                android:width="2dp"
+                android:color="#494444"/>
+
+            <solid
+                android:color="#E6E6E6"/>
+
+            <corners
+                android:radius="28dp"/>
+
+        </shape>
+    </item>
+
+    <item
+        android:id="@+id/progressbar_colour">
+        <clip>
+            <shape
+                android:shape="rectangle">
+
+                <stroke
+                    android:width="2dp"
+                    android:color="#494444"/>
+
+                <solid
+                    android:color="#B617BB"/>
+
+                <corners
+                    android:radius="28dp"/>
+            </shape>
+        </clip>
+    </item>
+
+</layer-list>
