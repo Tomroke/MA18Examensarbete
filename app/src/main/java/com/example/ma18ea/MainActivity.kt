@@ -1,6 +1,7 @@
 package com.example.ma18ea
 
 
+import android.content.Context
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -14,31 +15,41 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ma18ea.Fragments.ReminderMainFragment
-import com.example.ma18ea.ui.RecyclerView.MainRecyclerAdapter
+import com.example.ma18ea.fragments.ReminderMainFragment
+import com.example.ma18ea.room.RoomEntity
+import com.example.ma18ea.room.RoomViewModel
+import com.example.ma18ea.ui.recyclerView.MainRecyclerAdapter
 
 
 class MainActivity : AppCompatActivity()
 {
     private var TAG:String  = "MAIN ACTIVITY"
 
-    //Menu Variables
+    //Menu objects
     private lateinit var menu: Menu
     private var menuGroupVisible: Boolean = false
 
-    //Day Variables
+    //Day objects
     private lateinit var dayItem:LinearLayout
     private lateinit var previousDay:TextView
 
-    //Fragment Variables
+    //Fragment objects
     private lateinit var reminderMain:ReminderMainFragment
 
-    //RecyclerView Variables
+    //RecyclerView objects
     private lateinit var arrayRV :ArrayList<ReminderVariables>
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MainRecyclerAdapter
+
+    //Room objects
+    private lateinit var roomViewModel: RoomViewModel
+    private var words = emptyList<RoomEntity>() // Cached copy of words
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -46,6 +57,12 @@ class MainActivity : AppCompatActivity()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         setSupportActionBar(findViewById(R.id.header_toolbar))
+
+        roomViewModel = ViewModelProviders.of(this).get(RoomViewModel::class.java)
+        roomViewModel.allWords.observe(this, Observer {
+                words -> words?.let { setWords(it) }
+        })
+
 
         dayItem = findViewById(R.id.day_container)
         previousDay = dayItem.getChildAt(0) as TextView
@@ -79,6 +96,10 @@ class MainActivity : AppCompatActivity()
         }
 
     }//On Create
+
+    internal fun setWords(words: List<RoomEntity>) {
+        this.words = words
+    }
 
     private fun fetchData() {
 
@@ -144,6 +165,10 @@ class MainActivity : AppCompatActivity()
                 Toast.makeText(applicationContext, "Search", Toast.LENGTH_LONG).show()
                 menu.setGroupVisible(R.id.header_menu_buttons, false)
                 menuGroupVisible = false
+                for (str in words){
+                    Log.d(TAG, str.title)
+                    Log.d(TAG, str.word)
+                }
                 return true
             }
 

@@ -1,4 +1,4 @@
-package com.example.ma18ea.Fragments
+package com.example.ma18ea.fragments
 
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -107,14 +107,14 @@ class ReminderMainFragment : Fragment() {
         //Timer button
         timerButton.setOnClickListener {
             if (!isActive){
+                timerButton.setBackgroundResource(R.drawable.timer_button)
                 isActive = true
                 timer(totalTimeLong - doneTimeLong, sec).start()
-                timerButton.setBackgroundResource(R.drawable.timer_button)
-                //Log.d(TAG, "Timer Active $isCancelled")
+                Log.d(TAG, "Timer Active $isActive")
             }else{
                 timerButton.setBackgroundResource(R.drawable.timer_button_active)
                 isActive = false
-                //Log.d(TAG, "Timer Inactive $isCancelled")
+                Log.d(TAG, "Timer Active $isActive")
             }
         }
 
@@ -143,24 +143,26 @@ class ReminderMainFragment : Fragment() {
 
     private fun updateProgressBar() {
         paramProgress = calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toInt()
-
+        Log.d(TAG, "in UpdateProgressBar")
         if (frag != null){
             val timerTxt: String = "" + (paramDoneTime!! / 60.0) + " : " + (paramTotalTime!! / 60.0)
             frag!!.progress_txt.text = timerTxt
             frag!!.progressbar_in_reminder.progress = this.paramProgress!!
         }
+        Log.d(TAG, paramProgress.toString())
+        Log.d(TAG, doneTimeLong.toString())
     }
 
     private fun timer(millisInFuture:Long, countDownInterval:Long):CountDownTimer{
         return object: CountDownTimer(millisInFuture, countDownInterval){
             override fun onTick(millisUntilFinished: Long){
 
-                //Log.d(TAG, "Timer $millisUntilFinished")
+                Log.d(TAG, "Timer $millisUntilFinished")
                 if (!isActive){
-                    //Log.d(TAG, "Timer canceled")
+                    Log.d(TAG, "Timer canceled")
                     doneTimeLong += calculatation.newRemainingTime(totalTimeLong, doneTimeLong, millisUntilFinished)
                     paramDoneTime = calculatation.toMin(doneTimeLong)
-                    //Log.d(TAG, "time done $doneTimeLong. time remaining " + (totalTimeLong - doneTimeLong))
+                    Log.d(TAG, "time done $doneTimeLong. time remaining " + (totalTimeLong - doneTimeLong))
                     cancel()
                 }
             }
@@ -168,7 +170,7 @@ class ReminderMainFragment : Fragment() {
             override fun onFinish() {
                 doneTimeLong = totalTimeLong
                 updateProgressBar()
-                //Log.d(TAG, "Timer finished")
+                Log.d(TAG, "Timer finished")
             }
         }
 

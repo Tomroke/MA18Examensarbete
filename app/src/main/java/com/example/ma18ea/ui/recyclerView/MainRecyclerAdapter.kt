@@ -1,4 +1,4 @@
-package com.example.ma18ea.ui.RecyclerView
+package com.example.ma18ea.ui.recyclerView
 
 import android.content.res.ColorStateList
 import android.graphics.Color
