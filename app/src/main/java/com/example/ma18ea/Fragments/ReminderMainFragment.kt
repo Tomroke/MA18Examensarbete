@@ -35,14 +35,28 @@ class ReminderMainFragment : Fragment() {
     private var paramTitle: String? = null
     private var paramDesc: String? = null
 
-    private var paramDoneTime: Int? = null
-    private var doneTimeLong: Long = 0
-
-    private var paramTotalTime: Int? = null
-    private var totalTimeLong: Long = 0
+    private var paramDoneTime: Long = 0
+    private var paramTotalTime: Long = 0
+    private var timeDifference: Long = 0
 
     private var paramProgress: Int? = null
     private var paramDays: ArrayList<String>? = null
+
+    companion object {
+        @JvmStatic
+        fun newInstance(fragAR : ReminderVariables) =
+            ReminderMainFragment().apply {
+
+                arguments = Bundle().apply {
+                    putString(ARG_PARAM_TITLE, fragAR.title)
+                    putString(ARG_PARAM_DESC, fragAR.description)
+                    putLong(ARG_PARAM_DONE_TIME, fragAR.doneTime)
+                    putLong(ARG_PARAM_TOTAL_TIME, fragAR.totalTime)
+                    putStringArrayList(ARG_PARAM_DAYS, fragAR.days)
+
+                }
+            }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,14 +69,15 @@ class ReminderMainFragment : Fragment() {
             paramDesc = it.getString(ARG_PARAM_DESC)
 
             //Done time
-            paramDoneTime = it.getInt(ARG_PARAM_DONE_TIME)
-            doneTimeLong = (calculatation.toMilli(paramDoneTime!!))
-            Log.d(TAG, doneTimeLong.toString())
+            paramDoneTime = it.getLong(ARG_PARAM_DONE_TIME)
+            Log.d(TAG, "Done Time $paramDoneTime")
 
             //Total Time
-            paramTotalTime = it.getInt(ARG_PARAM_TOTAL_TIME)
-            totalTimeLong = (calculatation.toMilli(paramTotalTime!!))
-            Log.d(TAG, totalTimeLong.toString())
+            paramTotalTime = it.getLong(ARG_PARAM_TOTAL_TIME)
+            Log.d(TAG, "Total time $paramTotalTime")
+
+            timeDifference = paramTotalTime!!.minus(paramDoneTime!!)
+            Log.d(TAG, "Difference in time $timeDifference")
 
             updateProgressBar()
 
@@ -107,12 +122,12 @@ class ReminderMainFragment : Fragment() {
         //Timer button
         timerButton.setOnClickListener {
             if (!isActive){
-                timerButton.setBackgroundResource(R.drawable.timer_button)
+                timerButton.setBackgroundResource(R.drawable.timer_button_active)
                 isActive = true
-                timer(totalTimeLong - doneTimeLong, sec).start()
+                timer(timeDifference).start()
                 Log.d(TAG, "Timer Active $isActive")
             }else{
-                timerButton.setBackgroundResource(R.drawable.timer_button_active)
+                timerButton.setBackgroundResource(R.drawable.timer_button)
                 isActive = false
                 Log.d(TAG, "Timer Active $isActive")
             }
@@ -143,52 +158,35 @@ class ReminderMainFragment : Fragment() {
 
     private fun updateProgressBar() {
         paramProgress = calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toInt()
-        Log.d(TAG, "in UpdateProgressBar")
+        Log.d(TAG, "Progress bars percent " + calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toString())
         if (frag != null){
-            val timerTxt: String = "" + (paramDoneTime!! / 60.0) + " : " + (paramTotalTime!! / 60.0)
+            val timerTxt: String = "" + (calculatation.toMin(paramDoneTime!!) / 60.0) + " : " + (calculatation.toMin(paramTotalTime!!) / 60.0)
+
             frag!!.progress_txt.text = timerTxt
             frag!!.progressbar_in_reminder.progress = this.paramProgress!!
         }
-        Log.d(TAG, paramProgress.toString())
-        Log.d(TAG, doneTimeLong.toString())
     }
 
-    private fun timer(millisInFuture:Long, countDownInterval:Long):CountDownTimer{
-        return object: CountDownTimer(millisInFuture, countDownInterval){
+    private fun timer(millisInFuture:Long):CountDownTimer{
+        return object: CountDownTimer(millisInFuture, sec){
             override fun onTick(millisUntilFinished: Long){
 
                 Log.d(TAG, "Timer $millisUntilFinished")
                 if (!isActive){
+                    paramDoneTime += timeDifference - millisUntilFinished
+                    updateProgressBar()
                     Log.d(TAG, "Timer canceled")
-                    doneTimeLong += calculatation.newRemainingTime(totalTimeLong, doneTimeLong, millisUntilFinished)
-                    paramDoneTime = calculatation.toMin(doneTimeLong)
-                    Log.d(TAG, "time done $doneTimeLong. time remaining " + (totalTimeLong - doneTimeLong))
+                    Log.d(TAG, "Time done $paramDoneTime.")
                     cancel()
                 }
             }
 
             override fun onFinish() {
-                doneTimeLong = totalTimeLong
+                paramDoneTime = paramTotalTime
                 updateProgressBar()
                 Log.d(TAG, "Timer finished")
             }
         }
 
-    }
-
-    companion object {
-        @JvmStatic
-        fun newInstance(fragAR : ReminderVariables) =
-            ReminderMainFragment().apply {
-
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM_TITLE, fragAR.title)
-                    putString(ARG_PARAM_DESC, fragAR.description)
-                    putInt(ARG_PARAM_DONE_TIME, fragAR.doneTime)
-                    putInt(ARG_PARAM_TOTAL_TIME, fragAR.totalTime)
-                    putStringArrayList(ARG_PARAM_DAYS, fragAR.days)
-
-                }
-            }
     }
 }

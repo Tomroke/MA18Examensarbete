@@ -1,10 +1,9 @@
 package com.example.ma18ea
 
-
-import android.content.Context
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -15,16 +14,19 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import androidx.fragment.app.FragmentTransaction
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.example.ma18ea.fragments.ReminderMainFragment
-import com.example.ma18ea.room.RoomEntity
-import com.example.ma18ea.room.RoomViewModel
+import com.example.ma18ea.room.Converters
+import com.example.ma18ea.room.RemDatabase
+import com.example.ma18ea.room.RemEntity
 import com.example.ma18ea.ui.recyclerView.MainRecyclerAdapter
+import kotlinx.coroutines.*
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.coroutines.suspendCoroutine
 
 
 class MainActivity : AppCompatActivity()
@@ -42,14 +44,14 @@ class MainActivity : AppCompatActivity()
     //Fragment objects
     private lateinit var reminderMain:ReminderMainFragment
 
+    //Database
+    private var db: RemDatabase? = null
+
     //RecyclerView objects
     private lateinit var arrayRV :ArrayList<ReminderVariables>
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MainRecyclerAdapter
 
-    //Room objects
-    private lateinit var roomViewModel: RoomViewModel
-    private var words = emptyList<RoomEntity>() // Cached copy of words
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -58,10 +60,11 @@ class MainActivity : AppCompatActivity()
         setContentView(R.layout.main_activity)
         setSupportActionBar(findViewById(R.id.header_toolbar))
 
-        roomViewModel = ViewModelProviders.of(this).get(RoomViewModel::class.java)
-        roomViewModel.allWords.observe(this, Observer {
-                words -> words?.let { setWords(it) }
-        })
+        db = Room.databaseBuilder(
+            applicationContext,
+            RemDatabase::class.java, "RemDatabase"
+        ).fallbackToDestructiveMigration()
+            .build()
 
 
         dayItem = findViewById(R.id.day_container)
@@ -95,13 +98,16 @@ class MainActivity : AppCompatActivity()
             Log.e(TAG, e.message)
         }
 
+        GlobalScope.async {
+            workload(5)
+            //Log.d(TAG, db?.remDao()?.findByName("Math").toString())
+        }
+
     }//On Create
 
-    internal fun setWords(words: List<RoomEntity>) {
-        this.words = words
-    }
 
-    private fun fetchData() {
+    private fun fetchData()  {
+
 
         //Temp data
         val arrayDays = ArrayList<String>()
@@ -109,23 +115,37 @@ class MainActivity : AppCompatActivity()
         arrayDays.add("Friday")
         arrayDays.add("Sunday")
 
-        val rV = ReminderVariables("Math", 120,180, arrayDays, "Fuga nihil voluptates sit. Voluptates incidunt porro in voluptatem omnis possimus minus nostrum. Aliquam odit illo libero sequi quasi. Nemo dignissimos odit qui est consectetur vel inventore.")
-        val rV2 = ReminderVariables("Tech", 8, 120, arrayDays,"Ut odit recusandae inventore qui a omnis aperiam iure. Necessitatibus perspiciatis repellat tempora quia culpa eaque. Modi rerum voluptates cum hic et. Aut quas et deserunt illo velit deleniti. Esse illo dolorum velit quibusdam eius iusto aut vitae.")
-        val rV3 = ReminderVariables("Mech", 84, 60, arrayDays,"Nemo quo non blanditiis est recusandae sunt voluptatem. At illum voluptatem illum adipisci. Tempore cupiditate et labore qui neque. Id corrupti aut tempora. Provident nihil cupiditate ea et. Est et esse minus beatae ut.")
-        val rV4 = ReminderVariables("Sect", 32, 80, arrayDays,"Mollitia sed aut beatae molestiae delectus dolor excepturi. Ipsa iure soluta minima et recusandae. Hic voluptatibus doloremque nisi quisquam repudiandae officia.")
-        val rV5 = ReminderVariables("Math", 120,180, arrayDays, "Fuga nihil voluptates sit. Voluptates incidunt porro in voluptatem omnis possimus minus nostrum. Aliquam odit illo libero sequi quasi. Nemo dignissimos odit qui est consectetur vel inventore.")
-        val rV6 = ReminderVariables("Tech", 8, 120, arrayDays,"Ut odit recusandae inventore qui a omnis aperiam iure. Necessitatibus perspiciatis repellat tempora quia culpa eaque. Modi rerum voluptates cum hic et. Aut quas et deserunt illo velit deleniti. Esse illo dolorum velit quibusdam eius iusto aut vitae.")
-        val rV7 = ReminderVariables("Mech", 84, 60, arrayDays,"Nemo quo non blanditiis est recusandae sunt voluptatem. At illum voluptatem illum adipisci. Tempore cupiditate et labore qui neque. Id corrupti aut tempora. Provident nihil cupiditate ea et. Est et esse minus beatae ut.")
-        val rV8 = ReminderVariables("Sect", 32, 80, arrayDays,"Mollitia sed aut beatae molestiae delectus dolor excepturi. Ipsa iure soluta minima et recusandae. Hic voluptatibus doloremque nisi quisquam repudiandae officia.")
-        val rV9 = ReminderVariables("Math", 120,180, arrayDays, "Fuga nihil voluptates sit. Voluptates incidunt porro in voluptatem omnis possimus minus nostrum. Aliquam odit illo libero sequi quasi. Nemo dignissimos odit qui est consectetur vel inventore.")
-        val rV10 = ReminderVariables("Tech", 8, 120, arrayDays,"Ut odit recusandae inventore qui a omnis aperiam iure. Necessitatibus perspiciatis repellat tempora quia culpa eaque. Modi rerum voluptates cum hic et. Aut quas et deserunt illo velit deleniti. Esse illo dolorum velit quibusdam eius iusto aut vitae.")
-        val rV11 = ReminderVariables("Mech", 84, 60, arrayDays,"Nemo quo non blanditiis est recusandae sunt voluptatem. At illum voluptatem illum adipisci. Tempore cupiditate et labore qui neque. Id corrupti aut tempora. Provident nihil cupiditate ea et. Est et esse minus beatae ut.")
-        val rV12 = ReminderVariables("Sect", 32, 80, arrayDays,"Mollitia sed aut beatae molestiae delectus dolor excepturi. Ipsa iure soluta minima et recusandae. Hic voluptatibus doloremque nisi quisquam repudiandae officia.")
+        val rV = ReminderVariables(
+            "Math",
+            7200000,
+            10800000,
+            arrayDays,
+            "Fuga nihil voluptates sit. Voluptates incidunt porro in voluptatem omnis possimus" +
+                    " minus nostrum. Aliquam odit illo libero sequi quasi. Nemo dignissimos odit qui est " +
+                    "consectetur vel inventore.")
 
-        arrayRV = arrayListOf(
-            rV, rV2, rV3, rV4, rV5, rV6, rV7, rV8, rV9, rV10, rV11, rV12
-        )
+        arrayRV = arrayListOf(rV)
+
     }//fetch Data
+
+
+
+
+    private suspend fun workload(n: Int): Int {
+        val arrayDays = ArrayList<String>()
+        arrayDays.add("Monday")
+        arrayDays.add("Friday")
+        arrayDays.add("Sunday")
+        delay(1000)
+        var remE = RemEntity(5, "Math", 7200000, 10800000,"Monday" /*Converters.fromList(arrayDays)*/, "Fuga nihil voluptates sit.")
+       // db?.remDao()?.insertAll(remE)
+       var tmp = db?.remDao()?.getAll()
+        if(tmp != null){
+            for (tmp1 in tmp)
+            Log.d(TAG, tmp1.title)
+        }
+        return n
+    }
 
 
     private fun dayItemSelected(item: TextView){
@@ -165,10 +185,6 @@ class MainActivity : AppCompatActivity()
                 Toast.makeText(applicationContext, "Search", Toast.LENGTH_LONG).show()
                 menu.setGroupVisible(R.id.header_menu_buttons, false)
                 menuGroupVisible = false
-                for (str in words){
-                    Log.d(TAG, str.title)
-                    Log.d(TAG, str.word)
-                }
                 return true
             }
 
