@@ -60,12 +60,8 @@ class MainActivity : AppCompatActivity()
         setContentView(R.layout.main_activity)
         setSupportActionBar(findViewById(R.id.header_toolbar))
 
-        db = Room.databaseBuilder(
-            applicationContext,
-            RemDatabase::class.java, "RemDatabase"
-        ).fallbackToDestructiveMigration()
-            .build()
-
+        Log.d(TAG, GenUID().generateUID().toString())
+        db = RemDatabase.getInstance(this)
 
         dayItem = findViewById(R.id.day_container)
         previousDay = dayItem.getChildAt(0) as TextView
@@ -75,7 +71,22 @@ class MainActivity : AppCompatActivity()
             }
         }
 
-        fetchData()
+        val arrayDays = ArrayList<String>()
+        arrayDays.add("Monday")
+        arrayDays.add("Friday")
+        arrayDays.add("Sunday")
+
+        val rV = ReminderVariables(
+            5,
+            "Math",
+            7200000,
+            10800000,
+            arrayDays,
+            "Fuga nihil voluptates sit. Voluptates incidunt porro in voluptatem omnis possimus" +
+                    " minus nostrum. Aliquam odit illo libero sequi quasi. Nemo dignissimos odit qui est " +
+                    "consectetur vel inventore.")
+
+        arrayRV = arrayListOf(rV)
 
         try {
             recyclerView = findViewById<RecyclerView?>(R.id.mRecyclerView) as RecyclerView
@@ -99,53 +110,34 @@ class MainActivity : AppCompatActivity()
         }
 
         GlobalScope.async {
-            workload(5)
-            //Log.d(TAG, db?.remDao()?.findByName("Math").toString())
+            fetchData()
         }
 
     }//On Create
 
 
-    private fun fetchData()  {
+    private suspend fun fetchData()  {
+
+        //Create Data
+        /*var remE = RemEntity(
+            arrayRV[0].uid,
+            arrayRV[0].title,
+            arrayRV[0].doneTime,
+            arrayRV[0].totalTime,
+            Converters.fromList(arrayRV[0].days),
+            arrayRV[0].description)
+
+        //Add Data
+        db?.remDao()?.insertAll(remE)*/
+
+        //Delete Data
+        //db?.remDao()?.delete(RemEntity(6, "Math", 7200000, 10800000,"Monday" /*Converters.fromList(arrayDays)*/, "Fuga nihil voluptates sit."))
 
 
-        //Temp data
-        val arrayDays = ArrayList<String>()
-        arrayDays.add("Monday")
-        arrayDays.add("Friday")
-        arrayDays.add("Sunday")
+        delay(1000)
 
-        val rV = ReminderVariables(
-            "Math",
-            7200000,
-            10800000,
-            arrayDays,
-            "Fuga nihil voluptates sit. Voluptates incidunt porro in voluptatem omnis possimus" +
-                    " minus nostrum. Aliquam odit illo libero sequi quasi. Nemo dignissimos odit qui est " +
-                    "consectetur vel inventore.")
-
-        arrayRV = arrayListOf(rV)
 
     }//fetch Data
-
-
-
-
-    private suspend fun workload(n: Int): Int {
-        val arrayDays = ArrayList<String>()
-        arrayDays.add("Monday")
-        arrayDays.add("Friday")
-        arrayDays.add("Sunday")
-        delay(1000)
-        var remE = RemEntity(5, "Math", 7200000, 10800000,"Monday" /*Converters.fromList(arrayDays)*/, "Fuga nihil voluptates sit.")
-       // db?.remDao()?.insertAll(remE)
-       var tmp = db?.remDao()?.getAll()
-        if(tmp != null){
-            for (tmp1 in tmp)
-            Log.d(TAG, tmp1.title)
-        }
-        return n
-    }
 
 
     private fun dayItemSelected(item: TextView){

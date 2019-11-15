@@ -21,7 +21,11 @@ abstract class RemDatabase : RoomDatabase() {
             }
 
         private fun buildDatabase(context: Context) =
-            Room.databaseBuilder(context.applicationContext, RemDatabase::class.java, "app.db").build()
+            Room.databaseBuilder(
+                context.applicationContext,
+                RemDatabase::class.java, "RemDatabase"
+            ).fallbackToDestructiveMigration()
+                .build()
     }
 
 }

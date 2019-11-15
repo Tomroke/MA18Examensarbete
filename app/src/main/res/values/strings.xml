@@ -23,4 +23,11 @@
     <string name="friday_string">Fri</string>
     <string name="saturday_string">Sat</string>
     <string name="sunday_string">Sun</string>
+    <string name="friday_select_string">Friday</string>
+    <string name="saturday_select_string">Saturday</string>
+    <string name="sunday_select_string">Sunday</string>
+    <string name="thursday_select_string">Thursday</string>
+    <string name="wednesday_select_string">Wednesday</string>
+    <string name="tuesday_select_string">Tuesday</string>
+    <string name="monday_select_string">Monday</string>
 </resources>

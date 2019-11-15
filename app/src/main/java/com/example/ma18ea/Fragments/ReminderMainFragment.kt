@@ -1,20 +1,29 @@
 package com.example.ma18ea.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.EventLogTags
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.example.ma18ea.Calculation
-import com.example.ma18ea.ColourProgressBarGradient
-import com.example.ma18ea.R
-import com.example.ma18ea.ReminderVariables
+import com.example.ma18ea.*
+import com.example.ma18ea.room.Converters
+import com.example.ma18ea.room.RemDatabase
+import com.example.ma18ea.room.RemEntity
 import kotlinx.android.synthetic.main.fragment_reminder_main.view.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 
-
+private const val ARG_PARAM_UID = "param0"
 private const val ARG_PARAM_TITLE = "param1"
 private const val ARG_PARAM_DESC = "param2"
 private const val ARG_PARAM_DONE_TIME = "param3"
@@ -26,12 +35,14 @@ class ReminderMainFragment : Fragment() {
     private val TAG : String = "RMFragment"
 
     private var frag: View? = null
+    private var newRem = false
     private lateinit var calculatation: Calculation
     private lateinit var progressBarGradientColor: ColourProgressBarGradient
 
     private val sec: Long = 1000
     private var isActive = false
 
+    private var paramUID: Int = 0
     private var paramTitle: String? = null
     private var paramDesc: String? = null
 
@@ -42,17 +53,21 @@ class ReminderMainFragment : Fragment() {
     private var paramProgress: Int? = null
     private var paramDays: ArrayList<String>? = null
 
+    private var db: RemDatabase? = null
+
     companion object {
         @JvmStatic
         fun newInstance(fragAR : ReminderVariables) =
             ReminderMainFragment().apply {
 
                 arguments = Bundle().apply {
+                    putInt(ARG_PARAM_UID, fragAR.uid)
                     putString(ARG_PARAM_TITLE, fragAR.title)
                     putString(ARG_PARAM_DESC, fragAR.description)
                     putLong(ARG_PARAM_DONE_TIME, fragAR.doneTime)
                     putLong(ARG_PARAM_TOTAL_TIME, fragAR.totalTime)
                     putStringArrayList(ARG_PARAM_DAYS, fragAR.days)
+
 
                 }
             }
@@ -60,6 +75,8 @@ class ReminderMainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        db = RemDatabase.getInstance(context!!)
 
         progressBarGradientColor = ColourProgressBarGradient()
         calculatation = Calculation()
@@ -70,14 +87,14 @@ class ReminderMainFragment : Fragment() {
 
             //Done time
             paramDoneTime = it.getLong(ARG_PARAM_DONE_TIME)
-            Log.d(TAG, "Done Time $paramDoneTime")
+            //Log.d(TAG, "Done Time $paramDoneTime")
 
             //Total Time
             paramTotalTime = it.getLong(ARG_PARAM_TOTAL_TIME)
-            Log.d(TAG, "Total time $paramTotalTime")
+            //Log.d(TAG, "Total time $paramTotalTime")
 
             timeDifference = paramTotalTime!!.minus(paramDoneTime!!)
-            Log.d(TAG, "Difference in time $timeDifference")
+            //Log.d(TAG, "Difference in time $timeDifference")
 
             updateProgressBar()
 
@@ -95,11 +112,19 @@ class ReminderMainFragment : Fragment() {
     ): View? {
         frag = inflater.inflate(R.layout.fragment_reminder_main, container, false)
 
+        var titleView = this.frag!!.findViewById(R.id.title_reminder_txt) as EditText
+        var descriptionView = this.frag!!.findViewById(R.id.description_txt) as EditText
+        val daysButton = this.frag!!.findViewById(R.id.select_days_button) as Button
+
         val acceptButton = this.frag!!.findViewById(R.id.accept_button) as Button
         val timerButton = this.frag!!.findViewById(R.id.timer_button) as Button
         val deleteButton = this.frag!!.findViewById(R.id.delete_button) as Button
 
         if(paramTitle.equals("newTitle")){
+            newRem = true
+        }
+
+        if(newRem){
             paramTitle = "Title"
             timerButton.visibility = View.INVISIBLE
             timerButton.isClickable = false
@@ -112,38 +137,11 @@ class ReminderMainFragment : Fragment() {
             deleteButton.isClickable = true
         }
 
-
-        //Accept Button
-        acceptButton.setOnClickListener {
-                Log.d(TAG, "accept_button")
-        }
-
-
-        //Timer button
-        timerButton.setOnClickListener {
-            if (!isActive){
-                timerButton.setBackgroundResource(R.drawable.timer_button_active)
-                isActive = true
-                timer(timeDifference).start()
-                Log.d(TAG, "Timer Active $isActive")
-            }else{
-                timerButton.setBackgroundResource(R.drawable.timer_button)
-                isActive = false
-                Log.d(TAG, "Timer Active $isActive")
-            }
-        }
-
-        //Delete Button
-        deleteButton.setOnClickListener {
-            Log.d(TAG, "deleteButton")
-        }
-
-
-        var days = ""
-        frag!!.title_reminder_txt.text = paramTitle
+        frag!!.title_reminder_txt.setText(paramTitle)
         frag!!.description_txt.setText(paramDesc)
         updateProgressBar()
 
+        var days = ""
         for(item in paramDays!!){
             days += if(days == ""){
                 item
@@ -153,12 +151,115 @@ class ReminderMainFragment : Fragment() {
         }
         frag!!.select_days_button.text = days
 
+        //Title
+        titleView.addTextChangedListener(object: TextWatcher{
+
+            override fun afterTextChanged(s: Editable) {
+                paramTitle = s.toString()
+            }
+
+
+            override fun beforeTextChanged(s: CharSequence, start: Int,
+                                           count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence, start: Int,
+                                       before: Int, count: Int) {}
+        })
+
+        //Day Button
+        daysButton.setOnClickListener {
+            Log.d(TAG, "daysButton")
+        }
+
+        //Description
+        descriptionView.addTextChangedListener(object: TextWatcher{
+
+            override fun afterTextChanged(s: Editable) {
+                paramDesc = s.toString()
+            }
+
+
+            override fun beforeTextChanged(s: CharSequence, start: Int,
+                                           count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence, start: Int,
+                                       before: Int, count: Int) {}
+        })
+
+        //Accept Button
+        acceptButton.setOnClickListener {
+            GlobalScope.async {
+            acceptNewData(
+                paramUID,
+                paramTitle,
+                paramDoneTime,
+                paramTotalTime,
+                paramDays,
+                paramDesc)
+        }}
+
+
+
+
+        //Timer button
+        timerButton.setOnClickListener {usingTimer(timerButton)}
+
+        //Delete Button
+        deleteButton.setOnClickListener {
+            Log.d(TAG, "deleteButton")
+        }
+
+
+
         return frag
     }
 
+
+    private suspend fun acceptNewData(
+        uid: Int,
+        title: String?,
+        doneTime: Long,
+        totalTime: Long,
+        days: ArrayList<String>?,
+        descriptionTxt: String?){
+
+        delay(1000)
+
+        if(uid == 0){
+            //Create Data
+            var remE = RemEntity(
+                uid,
+                title,
+                doneTime,
+                totalTime,
+                Converters.fromList(days!!),
+                descriptionTxt)
+
+            //Add Data
+            //TODO surround this with a try catch
+                db?.remDao()?.insertAll(remE)
+            Log.d(TAG, "Data saved")
+        }
+    }
+
+
+    private fun usingTimer(timerButton: View){
+        if (!isActive){
+            timerButton.setBackgroundResource(R.drawable.timer_button_active)
+            isActive = true
+            timer(timeDifference).start()
+            //Log.d(TAG, "Timer Active $isActive")
+        }else{
+            timerButton.setBackgroundResource(R.drawable.timer_button)
+            isActive = false
+            //Log.d(TAG, "Timer Active $isActive")
+        }
+    }
+
+
     private fun updateProgressBar() {
         paramProgress = calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toInt()
-        Log.d(TAG, "Progress bars percent " + calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toString())
+        //Log.d(TAG, "Progress bars percent " + calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toString())
         if (frag != null){
             val timerTxt: String = "" + (calculatation.toMin(paramDoneTime!!) / 60.0) + " : " + (calculatation.toMin(paramTotalTime!!) / 60.0)
 
@@ -167,16 +268,17 @@ class ReminderMainFragment : Fragment() {
         }
     }
 
+
     private fun timer(millisInFuture:Long):CountDownTimer{
         return object: CountDownTimer(millisInFuture, sec){
             override fun onTick(millisUntilFinished: Long){
 
-                Log.d(TAG, "Timer $millisUntilFinished")
+                //Log.d(TAG, "Timer $millisUntilFinished")
                 if (!isActive){
                     paramDoneTime += timeDifference - millisUntilFinished
                     updateProgressBar()
-                    Log.d(TAG, "Timer canceled")
-                    Log.d(TAG, "Time done $paramDoneTime.")
+                    //Log.d(TAG, "Timer canceled")
+                    //Log.d(TAG, "Time done $paramDoneTime.")
                     cancel()
                 }
             }
@@ -184,7 +286,7 @@ class ReminderMainFragment : Fragment() {
             override fun onFinish() {
                 paramDoneTime = paramTotalTime
                 updateProgressBar()
-                Log.d(TAG, "Timer finished")
+                //Log.d(TAG, "Timer finished")
             }
         }
 
