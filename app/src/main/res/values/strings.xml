@@ -1,14 +1,11 @@
 <resources>
     <string name="app_name">MA18EA</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="time_txt">00:00</string>
     <string name="reminder_title">TITLE TEMP</string>
     <string name="title_txt">REMINDER TITLE</string>
     <string name="description_txt">DESCRIPTION</string>
     <string name="select_days_button">SELECT DAYS</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="headerMenuString">button to open rest of menu</string>
     <string name="create_new_reminder">Create new reminder</string>
@@ -16,6 +13,7 @@
     <string name="open_settings">Open settings</string>
     <string name="open_diagrams">Open diagrams</string>
     <string name="close_menu">close menu</string>
+
     <string name="monday_string">Mon</string>
     <string name="tuesday_string">Tue</string>
     <string name="wednesday_string">Wed</string>
@@ -23,6 +21,7 @@
     <string name="friday_string">Fri</string>
     <string name="saturday_string">Sat</string>
     <string name="sunday_string">Sun</string>
+
     <string name="friday_select_string">Friday</string>
     <string name="saturday_select_string">Saturday</string>
     <string name="sunday_select_string">Sunday</string>

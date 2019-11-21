@@ -1,27 +1,31 @@
 package com.example.ma18ea.fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.EventLogTags
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import com.example.ma18ea.*
 import com.example.ma18ea.room.Converters
 import com.example.ma18ea.room.RemDatabase
 import com.example.ma18ea.room.RemEntity
 import kotlinx.android.synthetic.main.fragment_reminder_main.view.*
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import android.app.Activity
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.view.inputmethod.InputMethodManager
+import android.widget.*
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+
 
 private const val ARG_PARAM_UID = "param0"
 private const val ARG_PARAM_TITLE = "param1"
@@ -36,8 +40,15 @@ class ReminderMainFragment : Fragment() {
 
     private var frag: View? = null
     private var newRem = false
+    private var fragCom:FragCommunicator? = null
+
     private lateinit var calculatation: Calculation
     private lateinit var progressBarGradientColor: ColourProgressBarGradient
+
+    private lateinit var dayFrag: DayFragment
+
+    private var min = 0
+    private var hour = 0
 
     private val sec: Long = 1000
     private var isActive = false
@@ -68,7 +79,6 @@ class ReminderMainFragment : Fragment() {
                     putLong(ARG_PARAM_TOTAL_TIME, fragAR.totalTime)
                     putStringArrayList(ARG_PARAM_DAYS, fragAR.days)
 
-
                 }
             }
     }
@@ -77,13 +87,20 @@ class ReminderMainFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         db = RemDatabase.getInstance(context!!)
+        fragCom = ViewModelProviders.of(activity!!).get(FragCommunicator::class.java)
 
         progressBarGradientColor = ColourProgressBarGradient()
         calculatation = Calculation()
 
         arguments?.let {
+            paramUID = it.getInt(ARG_PARAM_UID)
+            //Log.d(TAG, "UID: " + paramUID)
+
             paramTitle = it.getString(ARG_PARAM_TITLE)
+            //Log.d(TAG, "Title: " + paramTitle)
+
             paramDesc = it.getString(ARG_PARAM_DESC)
+            //Log.d(TAG, "Description: " + paramDesc)
 
             //Done time
             paramDoneTime = it.getLong(ARG_PARAM_DONE_TIME)
@@ -93,39 +110,54 @@ class ReminderMainFragment : Fragment() {
             paramTotalTime = it.getLong(ARG_PARAM_TOTAL_TIME)
             //Log.d(TAG, "Total time $paramTotalTime")
 
-            timeDifference = paramTotalTime!!.minus(paramDoneTime!!)
+            timeDifference = paramTotalTime.minus(paramDoneTime)
             //Log.d(TAG, "Difference in time $timeDifference")
 
             updateProgressBar()
 
             paramDays = it.getStringArrayList(ARG_PARAM_DAYS)
-            if (paramDays.isNullOrEmpty()){
-                paramDays?.add(getString(R.string.select_days_button))
-            }
+            //Log.d(TAG, "Days: " + paramDays.toString())
 
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         frag = inflater.inflate(R.layout.fragment_reminder_main, container, false)
 
-        var titleView = this.frag!!.findViewById(R.id.title_reminder_txt) as EditText
-        var descriptionView = this.frag!!.findViewById(R.id.description_txt) as EditText
-        val daysButton = this.frag!!.findViewById(R.id.select_days_button) as Button
+        val titleView = this.frag!!.findViewById(R.id.title_reminder_txt) as EditText
+        val descriptionView = this.frag!!.findViewById(R.id.description_txt) as EditText
 
+        val daysButton = this.frag!!.findViewById(R.id.select_days_button) as Button
         val acceptButton = this.frag!!.findViewById(R.id.accept_button) as Button
         val timerButton = this.frag!!.findViewById(R.id.timer_button) as Button
         val deleteButton = this.frag!!.findViewById(R.id.delete_button) as Button
 
+        val minPick = this.frag!!.findViewById(R.id.mMinPicker) as NumberPicker
+        minPick.maxValue = 60
+        minPick.minValue = 0
+        minPick.wrapSelectorWheel = true
+        minPick.setOnValueChangedListener { picker, oldVal, newVal ->
+            min = newVal
+            setNewTime("min", newVal)
+        }
+
+        val hourPick = this.frag!!.findViewById(R.id.mHourPicker) as NumberPicker
+        hourPick.maxValue = 24
+        hourPick.minValue = 0
+        hourPick.wrapSelectorWheel = true
+        hourPick.setOnValueChangedListener { picker, oldVal, newVal ->
+            hour = newVal
+            setNewTime("hour", newVal)
+        }
+
+        
         if(paramTitle.equals("newTitle")){
             newRem = true
         }
 
         if(newRem){
             paramTitle = "Title"
+
             timerButton.visibility = View.INVISIBLE
             timerButton.isClickable = false
             deleteButton.visibility = View.INVISIBLE
@@ -140,16 +172,7 @@ class ReminderMainFragment : Fragment() {
         frag!!.title_reminder_txt.setText(paramTitle)
         frag!!.description_txt.setText(paramDesc)
         updateProgressBar()
-
-        var days = ""
-        for(item in paramDays!!){
-            days += if(days == ""){
-                item
-            } else{
-                ", $item"
-            }
-        }
-        frag!!.select_days_button.text = days
+        updateDayButton()
 
         //Title
         titleView.addTextChangedListener(object: TextWatcher{
@@ -167,8 +190,25 @@ class ReminderMainFragment : Fragment() {
         })
 
         //Day Button
+
+        if (paramDays!![0] != "Select Days"){
+            fragCom!!.setDays(Converters.fromList(paramDays!!))
+        }
+
+        daysButton.background.setColorFilter(
+            Color.parseColor("#4043464B"),
+            PorterDuff.Mode.SCREEN)
+
         daysButton.setOnClickListener {
-            Log.d(TAG, "daysButton")
+
+
+            dayFrag = DayFragment.newInstance(paramDays!!)
+            fragmentManager!!
+                .beginTransaction()
+                .replace(R.id.container, dayFrag)
+                .addToBackStack(dayFrag.toString())
+                .setTransitionStyle(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                .commit()
         }
 
         //Description
@@ -186,60 +226,144 @@ class ReminderMainFragment : Fragment() {
                                        before: Int, count: Int) {}
         })
 
+
         //Accept Button
         acceptButton.setOnClickListener {
-            GlobalScope.async {
-            acceptNewData(
-                paramUID,
-                paramTitle,
-                paramDoneTime,
-                paramTotalTime,
-                paramDays,
-                paramDesc)
-        }}
+            GlobalScope.launch { acceptNewData() }
 
-
+            val inputMethodManager = activity?.getSystemService(
+                Activity.INPUT_METHOD_SERVICE
+            ) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(
+                activity?.currentFocus?.windowToken, 0
+            )
+            fragmentManager?.beginTransaction()?.remove(this)?.commit()
+        }
 
 
         //Timer button
         timerButton.setOnClickListener {usingTimer(timerButton)}
 
+
         //Delete Button
-        deleteButton.setOnClickListener {
-            Log.d(TAG, "deleteButton")
+        deleteButton.setOnClickListener { GlobalScope.launch { deleteData() }
+
+            val inputMethodManager = activity?.getSystemService(
+                Activity.INPUT_METHOD_SERVICE
+            ) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(
+                activity?.currentFocus?.windowToken, 0
+            )
+            fragmentManager?.beginTransaction()?.remove(this)?.commit()
         }
-
-
 
         return frag
     }
 
+    override fun onResume() {
+        super.onResume()
+            fragCom?.days?.observe(this,
+                Observer<String> {
+                        o ->
+                    Log.d(TAG, "In onResume; in Observer: $o")
+                    paramDays = Converters.toList(o) })
+            Log.d(TAG, paramDays.toString())
+            updateDayButton()
+    }
 
-    private suspend fun acceptNewData(
-        uid: Int,
-        title: String?,
-        doneTime: Long,
-        totalTime: Long,
-        days: ArrayList<String>?,
-        descriptionTxt: String?){
+    private fun setNewTime(timeString: String,timeData: Int){
+
+        if (timeString == "min"){
+            Calculation().toMilli(timeData)
+            Log.d(TAG, Calculation().toMilli(timeData).toString())
+        }
+        if (timeString == "hour"){
+            Calculation().toMilli(timeData * 60)
+            Log.d(TAG, Calculation().toMilli(timeData * 60).toString())
+        }
+
+        //paramTotalTime =
+    }
+
+
+    private fun deleteData(){
+        val delRem = RemEntity(
+            paramUID,
+            paramTitle,
+            paramDoneTime,
+            paramTotalTime,
+            Converters.fromList(paramDays!!),
+            paramDesc)
+
+        db?.remDao()?.delete(delRem)
+
+    }
+
+
+    private suspend fun acceptNewData(){
 
         delay(1000)
 
-        if(uid == 0){
+        val uidCheck = db?.remDao()?.findByID(paramUID)
+        val remE: RemEntity
+        if (uidCheck?.uid == paramUID){
+            //edit data
+            remE = RemEntity(
+                paramUID,
+                paramTitle,
+                paramDoneTime,
+                paramTotalTime,
+                Converters.fromList(paramDays!!),
+                paramDesc
+            )
+
+            //update Data
+            try {
+                db?.remDao()?.updateData(remE)
+                //Log.d(TAG, "Data edited and saved")
+            } catch (e: Exception) {
+                Log.e(TAG, e.message)
+            }
+        }else {
             //Create Data
-            var remE = RemEntity(
-                uid,
-                title,
-                doneTime,
-                totalTime,
-                Converters.fromList(days!!),
-                descriptionTxt)
+            remE = RemEntity(
+                GenUID().generateUID(),
+                paramTitle,
+                paramDoneTime,
+                paramTotalTime,
+                Converters.fromList(paramDays!!),
+                paramDesc
+            )
 
             //Add Data
-            //TODO surround this with a try catch
+            try {
                 db?.remDao()?.insertAll(remE)
-            Log.d(TAG, "Data saved")
+                //Log.d(TAG, "Data created and saved")
+            } catch (e: Exception) {
+                Log.e(TAG, e.message)
+            }
         }
+
+    }
+
+
+    private fun updateDayButton(){
+        if (paramDays?.get(0) != "Select Days"){
+            var days = ""
+            for(item in paramDays!!){
+                Log.d(TAG, "")
+                days += when {
+                    days == "" -> item
+                    item == paramDays!!.last() -> ", $item"
+                    else -> ", $item"
+                }
+                frag!!.select_days_button.text = days
+            }
+        }
+        else{
+            frag!!.select_days_button.text = paramDays?.get(0)
+        }
+
     }
 
 
@@ -258,12 +382,12 @@ class ReminderMainFragment : Fragment() {
 
 
     private fun updateProgressBar() {
-        paramProgress = calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toInt()
+        paramProgress = calculatation.ofProgressBar(paramDoneTime, paramTotalTime).toInt()
         //Log.d(TAG, "Progress bars percent " + calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toString())
         if (frag != null){
-            val timerTxt: String = "" + (calculatation.toMin(paramDoneTime!!) / 60.0) + " : " + (calculatation.toMin(paramTotalTime!!) / 60.0)
+            val timerTxt: String = "" + (calculatation.toMin(paramDoneTime) / 60.0) + " : " + (calculatation.toMin(paramTotalTime) / 60.0)
 
-            frag!!.progress_txt.text = timerTxt
+            //frag!!.progress_txt.setText(timerTxt)
             frag!!.progressbar_in_reminder.progress = this.paramProgress!!
         }
     }

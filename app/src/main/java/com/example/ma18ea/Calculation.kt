@@ -7,7 +7,7 @@ class Calculation {
     private lateinit var timeInString: String
     private lateinit var decimalCut:DecimalFormat
 
-    fun ofProgressBar (doneTime: Long, totalTime: Long): Double {
+    fun ofProgressBar (doneTime: Long?, totalTime: Long?): Double {
         return if (toMin(doneTime) != 0) {
             val onePercent = toMin(totalTime) / 100.0
             toMin(doneTime) / onePercent
@@ -16,7 +16,7 @@ class Calculation {
         }
     }
 
-    fun ofTimeInHours(doneTime: Long, totalTime: Long): String {
+    fun ofTimeInHours(doneTime: Long?, totalTime: Long?): String {
         decimalCut = DecimalFormat("#0.##")
         val timeHours:Double = toMin(totalTime) / 60.0
         val timeDone:Double = toMin(doneTime) / 60.0
@@ -33,8 +33,8 @@ class Calculation {
         return min.toLong() * 60000
     }
 
-    fun toMin (milli: Long): Int{
-        return milli.toInt() / 60000
+    fun toMin (milli: Long?): Int{
+        return milli!!.toInt() / 60000
     }
 
     fun newRemainingTime (totalTime: Long, previousTime: Long, currentDoneTime: Long):Long{

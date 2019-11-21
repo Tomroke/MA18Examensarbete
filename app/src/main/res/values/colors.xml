@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="fragDayButtonToggled">#60999999</color>
+    <color name="fragDayButtonUntoggled">#40999999</color>
     <color name="selectedDayColour">#FFFFFF</color>
     <color name="dayTextColour">#A2ACBA</color>
     <color name="colorPrimary">#008577</color>

@@ -3,7 +3,6 @@ package com.example.ma18ea
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -16,17 +15,17 @@ import androidx.core.view.children
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ma18ea.fragments.ReminderMainFragment
 import com.example.ma18ea.room.Converters
 import com.example.ma18ea.room.RemDatabase
 import com.example.ma18ea.room.RemEntity
 import com.example.ma18ea.ui.recyclerView.MainRecyclerAdapter
 import kotlinx.coroutines.*
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.coroutines.suspendCoroutine
+import android.os.Handler
+import android.widget.NumberPicker
+import androidx.viewpager.widget.ViewPager
+import kotlinx.android.synthetic.main.main_activity.*
 
 
 class MainActivity : AppCompatActivity()
@@ -46,12 +45,16 @@ class MainActivity : AppCompatActivity()
 
     //Database
     private var db: RemDatabase? = null
+    private var dbDown: ArrayList<RemEntity>? = null
+    private var arrayRV: ArrayList<ReminderVariables> = arrayListOf()
 
     //RecyclerView objects
-    private lateinit var arrayRV :ArrayList<ReminderVariables>
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: MainRecyclerAdapter
+    private lateinit var swipeRefresh: SwipeRefreshLayout
 
+    //ViewPage Objects
+    private lateinit var viewPager: ViewPager
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -60,7 +63,6 @@ class MainActivity : AppCompatActivity()
         setContentView(R.layout.main_activity)
         setSupportActionBar(findViewById(R.id.header_toolbar))
 
-        Log.d(TAG, GenUID().generateUID().toString())
         db = RemDatabase.getInstance(this)
 
         dayItem = findViewById(R.id.day_container)
@@ -71,22 +73,10 @@ class MainActivity : AppCompatActivity()
             }
         }
 
-        val arrayDays = ArrayList<String>()
-        arrayDays.add("Monday")
-        arrayDays.add("Friday")
-        arrayDays.add("Sunday")
+        viewPager = findViewById(R.id.mViewPage)
 
-        val rV = ReminderVariables(
-            5,
-            "Math",
-            7200000,
-            10800000,
-            arrayDays,
-            "Fuga nihil voluptates sit. Voluptates incidunt porro in voluptatem omnis possimus" +
-                    " minus nostrum. Aliquam odit illo libero sequi quasi. Nemo dignissimos odit qui est " +
-                    "consectetur vel inventore.")
-
-        arrayRV = arrayListOf(rV)
+        swipeRefresh = findViewById(R.id.mSwipeRefresh)
+        swipeRefresh.setOnRefreshListener { onRefresh() }
 
         try {
             recyclerView = findViewById<RecyclerView?>(R.id.mRecyclerView) as RecyclerView
@@ -109,33 +99,49 @@ class MainActivity : AppCompatActivity()
             Log.e(TAG, e.message)
         }
 
-        GlobalScope.async {
+        GlobalScope.launch {
             fetchData()
         }
 
     }//On Create
 
 
+    private fun onRefresh() {
+        Log.d(TAG, "Is refreshing")
+        GlobalScope.launch {
+            fetchData()
+        }
+        Handler().postDelayed(Runnable { mSwipeRefresh.isRefreshing = false }, 2000)
+    }
+
+
     private suspend fun fetchData()  {
 
-        //Create Data
-        /*var remE = RemEntity(
-            arrayRV[0].uid,
-            arrayRV[0].title,
-            arrayRV[0].doneTime,
-            arrayRV[0].totalTime,
-            Converters.fromList(arrayRV[0].days),
-            arrayRV[0].description)
-
-        //Add Data
-        db?.remDao()?.insertAll(remE)*/
-
-        //Delete Data
-        //db?.remDao()?.delete(RemEntity(6, "Math", 7200000, 10800000,"Monday" /*Converters.fromList(arrayDays)*/, "Fuga nihil voluptates sit."))
-
-
+        arrayRV.clear()
+        dbDown?.clear()
         delay(1000)
 
+        dbDown = db?.remDao()!!.getAll() as ArrayList<RemEntity>
+        var remTemp: ReminderVariables
+        for (rem in dbDown!!) {
+                remTemp = ReminderVariables()
+                remTemp.uid = rem.uid
+                remTemp.title = rem.title.toString()
+                remTemp.doneTime = rem.doneTime!!
+                remTemp.totalTime = rem.totalTime!!
+                remTemp.days = rem.days?.let { Converters.toList(it) }!!
+                remTemp.description = rem.description.toString()
+
+                 arrayRV.add(remTemp)
+        }
+
+        //Clears all data in the database, only for testing.
+        /*for (item in dbDown!!){
+            db?.remDao()?.delete(item)
+        }*/
+
+        //Check if the DB is empty or not
+        Log.d(TAG, arrayRV.size.toString())
 
     }//fetch Data
 
@@ -161,7 +167,8 @@ class MainActivity : AppCompatActivity()
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.new_reminder -> {
-                reminderMain = ReminderMainFragment.newInstance(ReminderVariables())
+                var rv = ReminderVariables()
+                reminderMain = ReminderMainFragment.newInstance(rv)
                 supportFragmentManager
                     .beginTransaction()
                     .replace(R.id.container, reminderMain)
