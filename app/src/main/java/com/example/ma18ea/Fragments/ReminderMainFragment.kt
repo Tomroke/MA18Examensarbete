@@ -191,10 +191,6 @@ class ReminderMainFragment : Fragment() {
 
         //Day Button
 
-        if (paramDays!![0] != "Select Days"){
-            fragCom!!.setDays(Converters.fromList(paramDays!!))
-        }
-
         daysButton.background.setColorFilter(
             Color.parseColor("#4043464B"),
             PorterDuff.Mode.SCREEN)
@@ -263,12 +259,19 @@ class ReminderMainFragment : Fragment() {
     override fun onResume() {
         super.onResume()
             fragCom?.days?.observe(this,
-                Observer<String> {
+                Observer<Any> {
                         o ->
                     Log.d(TAG, "In onResume; in Observer: $o")
-                    paramDays = Converters.toList(o) })
+                    paramDays = Converters.toList(o.toString()) })
             Log.d(TAG, paramDays.toString())
             updateDayButton()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (paramDays!![0] != "Select Days"){
+            fragCom!!.setDays(Converters.fromList(paramDays!!))
+        }
     }
 
     private fun setNewTime(timeString: String,timeData: Int){

@@ -7,11 +7,11 @@ class Converters {
     companion object {
         @TypeConverter
         @JvmStatic
-        fun fromList(value: ArrayList<String>): String {
+        fun fromList(data: ArrayList<String>): String {
             var string = ""
-            for(str in value){
+            for(str in data){
                 string +=
-                    if (str == value.last()){
+                    if (str == data.last()){
                     (str)
                     }
 
@@ -24,8 +24,15 @@ class Converters {
 
         @TypeConverter
         @JvmStatic
-        fun toList(value: String): ArrayList<String> {
-            return value.split(":") as ArrayList<String>
+        fun toList(data: String): ArrayList<String> {
+            var splitStrings: ArrayList<String> = ArrayList()
+            return if (data.endsWith("y") && !data.contains(":")){
+                splitStrings.add(data)
+                splitStrings
+            }else{
+                splitStrings = data.split(":") as ArrayList<String>
+                splitStrings
+            }
         }
     }
 }

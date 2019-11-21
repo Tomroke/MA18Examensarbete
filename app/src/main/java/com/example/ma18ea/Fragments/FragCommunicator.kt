@@ -5,9 +5,10 @@ import androidx.lifecycle.MutableLiveData
 
 class FragCommunicator : ViewModel(){
 
-    val days = MutableLiveData<String>()
+    val days = MutableLiveData<Any>()
 
     fun setDays(msg: String){
         days.value = msg
     }
+
 }

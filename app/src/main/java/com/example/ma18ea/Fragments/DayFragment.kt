@@ -60,12 +60,6 @@ class DayFragment : BottomSheetDialogFragment() {
         fragCom= ViewModelProviders.of(activity!!).get(FragCommunicator::class.java)
 
         returnStrings = ArrayList()
-        fragCom?.days?.observe(this,
-            Observer<String> { o ->
-                if(o.isNotEmpty()){
-                    returnStrings = Converters.toList(o)
-                }
-            })
 
         dayButtonArray = ArrayList()
         dayButtonArray.add(frag!!.findViewById(R.id.select_monday))
@@ -77,6 +71,13 @@ class DayFragment : BottomSheetDialogFragment() {
         dayButtonArray.add(frag!!.findViewById(R.id.select_sunday))
 
 
+        fragCom?.days?.observe(this,
+            Observer<Any> {
+                    o -> fetchData(o.toString())
+                Log.d(TAG, "Fetching String in onCreateView: ${returnStrings.toString()}")
+
+            })
+
         for (button in dayButtonArray){
             button.background.setColorFilter(Color.parseColor(notSelColour), PorterDuff.Mode.SCREEN)
             button.setOnClickListener { buttonToggle(button) }
@@ -85,13 +86,13 @@ class DayFragment : BottomSheetDialogFragment() {
         return frag
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
 
         fragCom?.days?.observe(this,
-            Observer<String> {
+            Observer<Any> {
                     o -> fetchData(o.toString())
-                Log.d(TAG, "in Observer: ${returnStrings.toString()}")
+                Log.d(TAG, "Fetching String in onResume: ${returnStrings.toString()}")
 
             })
 
@@ -109,6 +110,7 @@ class DayFragment : BottomSheetDialogFragment() {
     }
 
     private fun fetchData(o: String){
+
         returnStrings = Converters.toList(o)
 
         for (string in returnStrings!!){
