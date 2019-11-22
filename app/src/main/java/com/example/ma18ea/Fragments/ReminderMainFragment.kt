@@ -25,6 +25,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import java.util.concurrent.TimeUnit
 
 
 private const val ARG_PARAM_UID = "param0"
@@ -43,8 +44,6 @@ class ReminderMainFragment : Fragment() {
     private var fragCom:FragCommunicator? = null
 
     private lateinit var calculatation: Calculation
-    private lateinit var progressBarGradientColor: ColourProgressBarGradient
-
     private lateinit var dayFrag: DayFragment
 
     private var min = 0
@@ -66,6 +65,7 @@ class ReminderMainFragment : Fragment() {
 
     private var db: RemDatabase? = null
 
+
     companion object {
         @JvmStatic
         fun newInstance(fragAR : ReminderVariables) =
@@ -83,13 +83,13 @@ class ReminderMainFragment : Fragment() {
             }
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         db = RemDatabase.getInstance(context!!)
         fragCom = ViewModelProviders.of(activity!!).get(FragCommunicator::class.java)
 
-        progressBarGradientColor = ColourProgressBarGradient()
         calculatation = Calculation()
 
         arguments?.let {
@@ -121,6 +121,7 @@ class ReminderMainFragment : Fragment() {
         }
     }
 
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         frag = inflater.inflate(R.layout.fragment_reminder_main, container, false)
 
@@ -133,21 +134,25 @@ class ReminderMainFragment : Fragment() {
         val deleteButton = this.frag!!.findViewById(R.id.delete_button) as Button
 
         val minPick = this.frag!!.findViewById(R.id.mMinPicker) as NumberPicker
+
+        calHoursMins()
         minPick.maxValue = 60
         minPick.minValue = 0
         minPick.wrapSelectorWheel = true
+        minPick.value = min
         minPick.setOnValueChangedListener { picker, oldVal, newVal ->
             min = newVal
-            setNewTime("min", newVal)
+            setNewTime()
         }
 
         val hourPick = this.frag!!.findViewById(R.id.mHourPicker) as NumberPicker
         hourPick.maxValue = 24
         hourPick.minValue = 0
         hourPick.wrapSelectorWheel = true
+        hourPick.value = hour
         hourPick.setOnValueChangedListener { picker, oldVal, newVal ->
             hour = newVal
-            setNewTime("hour", newVal)
+            setNewTime()
         }
 
         
@@ -190,13 +195,11 @@ class ReminderMainFragment : Fragment() {
         })
 
         //Day Button
-
         daysButton.background.setColorFilter(
             Color.parseColor("#4043464B"),
             PorterDuff.Mode.SCREEN)
 
         daysButton.setOnClickListener {
-
 
             dayFrag = DayFragment.newInstance(paramDays!!)
             fragmentManager!!
@@ -256,16 +259,18 @@ class ReminderMainFragment : Fragment() {
         return frag
     }
 
+
     override fun onResume() {
         super.onResume()
             fragCom?.days?.observe(this,
                 Observer<Any> {
                         o ->
-                    Log.d(TAG, "In onResume; in Observer: $o")
+                    //Log.d(TAG, "In onResume; in Observer: $o")
                     paramDays = Converters.toList(o.toString()) })
-            Log.d(TAG, paramDays.toString())
+            //Log.d(TAG, paramDays.toString())
             updateDayButton()
     }
+
 
     override fun onPause() {
         super.onPause()
@@ -274,18 +279,28 @@ class ReminderMainFragment : Fragment() {
         }
     }
 
-    private fun setNewTime(timeString: String,timeData: Int){
 
-        if (timeString == "min"){
-            Calculation().toMilli(timeData)
-            Log.d(TAG, Calculation().toMilli(timeData).toString())
-        }
-        if (timeString == "hour"){
-            Calculation().toMilli(timeData * 60)
-            Log.d(TAG, Calculation().toMilli(timeData * 60).toString())
-        }
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "in onStop")
+        GlobalScope.launch { acceptNewData() }
+    }
 
-        //paramTotalTime =
+    private fun setNewTime(){
+        paramTotalTime = (Calculation().toMilli(hour * 60) + Calculation().toMilli(min))
+        updateProgressBar()
+        Log.d(TAG, "new total time $paramTotalTime")
+    }
+
+
+    private fun calHoursMins(){
+        var minutes = TimeUnit.MILLISECONDS.toMinutes(paramTotalTime)
+        var hours = TimeUnit.MILLISECONDS.toHours(paramTotalTime)
+        minutes -= (hours * 60)
+        min = minutes.toInt()
+        hour = hours.toInt()
+        //Log.d(TAG, "Minutes: $min")
+        //Log.d(TAG, "Hours: $hour")
     }
 
 
@@ -388,9 +403,6 @@ class ReminderMainFragment : Fragment() {
         paramProgress = calculatation.ofProgressBar(paramDoneTime, paramTotalTime).toInt()
         //Log.d(TAG, "Progress bars percent " + calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toString())
         if (frag != null){
-            val timerTxt: String = "" + (calculatation.toMin(paramDoneTime) / 60.0) + " : " + (calculatation.toMin(paramTotalTime) / 60.0)
-
-            //frag!!.progress_txt.setText(timerTxt)
             frag!!.progressbar_in_reminder.progress = this.paramProgress!!
         }
     }
