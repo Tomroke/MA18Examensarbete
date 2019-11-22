@@ -33,12 +33,8 @@ class Calculation {
         return min.toLong() * 60000
     }
 
-    fun toMin (milli: Long?): Int{
+    private fun toMin (milli: Long?): Int{
         return milli!!.toInt() / 60000
-    }
-
-    fun newRemainingTime (totalTime: Long, previousTime: Long, currentDoneTime: Long):Long{
-        return (totalTime - previousTime) - currentDoneTime
     }
 
 }

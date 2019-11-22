@@ -4,7 +4,7 @@
     <color name="fragDayButtonUntoggled">#40999999</color>
     <color name="selectedDayColour">#FFFFFF</color>
     <color name="dayTextColour">#A2ACBA</color>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorPrimary">#60C57F</color>
+    <color name="colorPrimaryDark">#3FA860</color>
     <color name="colorAccent">#D81B60</color>
 </resources>

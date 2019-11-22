@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.recycler_view_item.view.*
 class MainRecyclerAdapter(private val arrayRV: List<ReminderVariables>?): RecyclerView.Adapter<ViewHolder>() {
     private val TAG : String = "MainRecyclerAdapter"
     private lateinit var calculatation: Calculation
-    private lateinit var progressBarGradientColor: ColourProgressBarGradient
 
     override fun getItemCount(): Int {
         return arrayRV!!.size
@@ -36,6 +35,7 @@ class MainRecyclerAdapter(private val arrayRV: List<ReminderVariables>?): Recycl
 
     //This is where you add and change the object in the recycler view
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        //dayButtonArray[6].background.setColorFilter(Color.parseColor(selColour), PorterDuff.Mode.SCREEN)
 
         calculatation = Calculation()
         val progress = calculatation.ofProgressBar(
@@ -43,16 +43,14 @@ class MainRecyclerAdapter(private val arrayRV: List<ReminderVariables>?): Recycl
             arrayRV?.get(position)?.totalTime
         ).toInt()
 
-        progressBarGradientColor = ColourProgressBarGradient()
-        val colour = progressBarGradientColor.getColour(progress)
-
-        val bar = holder.itemView.recycler_progressBar.findViewById<ProgressBar?>(R.id.recycler_progressBar) as ProgressBar
+        /*val bar = holder.itemView.recycler_progressBar.findViewById<ProgressBar?>(R.id.recycler_progressBar) as ProgressBar
 
         val drawable = bar.progressDrawable
-        drawable.setColorFilter(Color.MAGENTA, PorterDuff.Mode.MULTIPLY)
+        drawable.setColorFilter(Color.parseColor("#494444"), PorterDuff.Mode.SCREEN)
+        drawable.setColorFilter(Color.parseColor("#EBBA15"), PorterDuff.Mode.MULTIPLY)
         bar.progressDrawable = drawable
         holder.itemView.recycler_progressBar.indeterminateTintList = ColorStateList.valueOf(Color.RED)
-
+*/
 
 
         holder.itemView.recycler_title_txt?.text = arrayRV?.get(position)?.title

@@ -401,9 +401,9 @@ class ReminderMainFragment : Fragment() {
 
     private fun updateProgressBar() {
         paramProgress = calculatation.ofProgressBar(paramDoneTime, paramTotalTime).toInt()
-        //Log.d(TAG, "Progress bars percent " + calculatation.ofProgressBar(paramDoneTime!!, paramTotalTime!!).toString())
+        Log.d(TAG, "Progress bars percent $paramProgress")
         if (frag != null){
-            frag!!.progressbar_in_reminder.progress = this.paramProgress!!
+            frag!!.progressbar_in_reminder.progress = paramProgress!!
         }
     }
 
