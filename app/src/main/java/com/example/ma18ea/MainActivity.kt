@@ -9,7 +9,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.view.children
 import androidx.fragment.app.FragmentTransaction
@@ -23,8 +22,13 @@ import com.example.ma18ea.room.RemEntity
 import com.example.ma18ea.ui.recyclerView.MainRecyclerAdapter
 import kotlinx.coroutines.*
 import android.os.Handler
-import android.widget.NumberPicker
-import androidx.viewpager.widget.ViewPager
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
+import com.example.ma18ea.fragments.TemporaryFragment
+import com.example.ma18ea.ui.recyclerView.SizeFragment
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.main_activity.*
 
 
@@ -37,11 +41,12 @@ class MainActivity : AppCompatActivity()
     private var menuGroupVisible: Boolean = false
 
     //Day objects
-    private lateinit var dayItem:LinearLayout
-    private lateinit var previousDay:TextView
+    private lateinit var dayItem: LinearLayout
+    private lateinit var previousDay: TextView
 
     //Fragment objects
-    private lateinit var reminderMain:ReminderMainFragment
+    private lateinit var reminderMain: ReminderMainFragment
+    private lateinit var tempFragment: TemporaryFragment
 
     //Database
     private var db: RemDatabase? = null
@@ -53,8 +58,9 @@ class MainActivity : AppCompatActivity()
     private lateinit var adapter: MainRecyclerAdapter
     private lateinit var swipeRefresh: SwipeRefreshLayout
 
-    //ViewPage Objects
-    private lateinit var viewPager: ViewPager
+    //ViewPage
+    private lateinit var viewPager: ViewPager2
+    private lateinit var tabs: TabLayout
 
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -62,6 +68,43 @@ class MainActivity : AppCompatActivity()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
         setSupportActionBar(findViewById(R.id.header_toolbar))
+
+        tabs = findViewById(R.id.tabs_layout)
+        viewPager = findViewById(R.id.mViewPager)
+
+        viewPager.adapter = object : FragmentStateAdapter(this) {
+            override fun createFragment(position: Int): Fragment {
+                return when(position) {
+                    0 -> {SizeFragment.newInstance()}
+                    1 -> {SizeFragment.newInstance()}
+                    2 -> {SizeFragment.newInstance()}
+                    3 -> {SizeFragment.newInstance()}
+                    4 -> {SizeFragment.newInstance()}
+                    5 -> {SizeFragment.newInstance()}
+                    6 -> {SizeFragment.newInstance()}
+                    else -> {
+                        SizeFragment.newInstance()
+                    }
+                }
+            }
+
+            override fun getItemCount(): Int {
+                return 7
+            }
+        }
+
+        TabLayoutMediator(tabs, viewPager) { tab, position ->
+            tab.text = when(position) {
+                0 -> "Mon"
+                1 -> "Tue"
+                2 -> "Wen"
+                3 -> "Thu"
+                4 -> "Fri"
+                5 -> "Sat"
+                6 -> "Sun"
+                else -> "Template"
+            }
+        }.attach()
 
         db = RemDatabase.getInstance(this)
 
@@ -72,8 +115,6 @@ class MainActivity : AppCompatActivity()
                 dayItemSelected(child as TextView)
             }
         }
-
-        viewPager = findViewById(R.id.mViewPage)
 
         swipeRefresh = findViewById(R.id.mSwipeRefresh)
         swipeRefresh.setOnRefreshListener { onRefresh() }
@@ -107,7 +148,7 @@ class MainActivity : AppCompatActivity()
 
 
     private fun onRefresh() {
-        Log.d(TAG, "Is refreshing")
+        //Log.d(TAG, "Is refreshing")
         GlobalScope.launch {
             fetchData()
         }
@@ -141,7 +182,7 @@ class MainActivity : AppCompatActivity()
         }*/
 
         //Check if the DB is empty or not
-        Log.d(TAG, arrayRV.size.toString())
+        //Log.d(TAG, arrayRV.size.toString())
 
     }//fetch Data
 
@@ -165,9 +206,10 @@ class MainActivity : AppCompatActivity()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        tempFragment = TemporaryFragment.newInstance()
         return when (item.itemId) {
             R.id.new_reminder -> {
-                var rv = ReminderVariables()
+                val rv = ReminderVariables()
                 reminderMain = ReminderMainFragment.newInstance(rv)
                 supportFragmentManager
                     .beginTransaction()
@@ -181,34 +223,48 @@ class MainActivity : AppCompatActivity()
             }
 
             R.id.header_search_button ->{
-                Toast.makeText(applicationContext, "Search", Toast.LENGTH_LONG).show()
+                supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.container, tempFragment)
+                    .addToBackStack(tempFragment.toString())
+                    .setTransitionStyle(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit()
                 menu.setGroupVisible(R.id.header_menu_buttons, false)
                 menuGroupVisible = false
                 return true
             }
 
             R.id.header_diagram_button ->{
-                Toast.makeText(applicationContext, "Diagram", Toast.LENGTH_LONG).show()
+                supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.container, tempFragment)
+                    .addToBackStack(tempFragment.toString())
+                    .setTransitionStyle(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit()
                 menu.setGroupVisible(R.id.header_menu_buttons, false)
                 menuGroupVisible = false
                 return true
             }
 
             R.id.header_settings_button ->{
-                Toast.makeText(applicationContext, "Settings", Toast.LENGTH_LONG).show()
+                supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.container, tempFragment)
+                    .addToBackStack(tempFragment.toString())
+                    .setTransitionStyle(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    .commit()
                 menu.setGroupVisible(R.id.header_menu_buttons, false)
                 menuGroupVisible = false
                 return true
             }
 
             R.id.open_close_header_button ->{
-                if(menuGroupVisible){
+                menuGroupVisible = if(menuGroupVisible){
                     menu.setGroupVisible(R.id.header_menu_buttons, false)
-                    menuGroupVisible = false
-                }
-                else{
+                    false
+                } else{
                     this.menu.setGroupVisible(R.id.header_menu_buttons, true)
-                    menuGroupVisible = true
+                    true
                 }
 
                 return true
