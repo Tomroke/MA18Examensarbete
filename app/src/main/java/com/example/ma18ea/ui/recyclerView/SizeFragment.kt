@@ -13,11 +13,9 @@ class SizeFragment : Fragment() {
         fun newInstance() = SizeFragment()
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.size, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        var frag = inflater.inflate(R.layout.size, container, false)
+
+        return frag
     }
 }

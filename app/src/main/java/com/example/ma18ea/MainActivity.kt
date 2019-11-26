@@ -1,5 +1,6 @@
 package com.example.ma18ea
 
+import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -69,30 +70,15 @@ class MainActivity : AppCompatActivity()
         setContentView(R.layout.main_activity)
         setSupportActionBar(findViewById(R.id.header_toolbar))
 
-        tabs = findViewById(R.id.tabs_layout)
+        db = RemDatabase.getInstance(this)
+
+        swipeRefresh = findViewById(R.id.mSwipeRefresh)
+        swipeRefresh.setOnRefreshListener { onRefresh() }
+
         viewPager = findViewById(R.id.mViewPager)
+        viewPagerFrag()
 
-        viewPager.adapter = object : FragmentStateAdapter(this) {
-            override fun createFragment(position: Int): Fragment {
-                return when(position) {
-                    0 -> {SizeFragment.newInstance()}
-                    1 -> {SizeFragment.newInstance()}
-                    2 -> {SizeFragment.newInstance()}
-                    3 -> {SizeFragment.newInstance()}
-                    4 -> {SizeFragment.newInstance()}
-                    5 -> {SizeFragment.newInstance()}
-                    6 -> {SizeFragment.newInstance()}
-                    else -> {
-                        SizeFragment.newInstance()
-                    }
-                }
-            }
-
-            override fun getItemCount(): Int {
-                return 7
-            }
-        }
-
+        tabs = findViewById(R.id.tabs_layout)
         TabLayoutMediator(tabs, viewPager) { tab, position ->
             tab.text = when(position) {
                 0 -> "Mon"
@@ -105,19 +91,6 @@ class MainActivity : AppCompatActivity()
                 else -> "Template"
             }
         }.attach()
-
-        db = RemDatabase.getInstance(this)
-
-        dayItem = findViewById(R.id.day_container)
-        previousDay = dayItem.getChildAt(0) as TextView
-        for (child in dayItem.children){
-            child.setOnClickListener {
-                dayItemSelected(child as TextView)
-            }
-        }
-
-        swipeRefresh = findViewById(R.id.mSwipeRefresh)
-        swipeRefresh.setOnRefreshListener { onRefresh() }
 
         try {
             recyclerView = findViewById<RecyclerView?>(R.id.mRecyclerView) as RecyclerView
@@ -146,6 +119,11 @@ class MainActivity : AppCompatActivity()
 
     }//On Create
 
+
+    private fun viewPagerFrag(){
+        viewPager.adapter
+
+    }
 
     private fun onRefresh() {
         //Log.d(TAG, "Is refreshing")
@@ -185,17 +163,6 @@ class MainActivity : AppCompatActivity()
         //Log.d(TAG, arrayRV.size.toString())
 
     }//fetch Data
-
-
-    private fun dayItemSelected(item: TextView){
-        if (item != previousDay){
-            item.setBackgroundResource(R.drawable.day_selected)
-            item.setTextColor(resources.getColor(R.color.selectedDayColour))
-            previousDay.setBackgroundResource(R.drawable.day_deselected)
-            previousDay.setTextColor(resources.getColor(R.color.dayTextColour))
-            previousDay = item
-        }
-    }
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

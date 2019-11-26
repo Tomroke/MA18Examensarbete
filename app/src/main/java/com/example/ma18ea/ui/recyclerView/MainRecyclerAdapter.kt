@@ -43,16 +43,6 @@ class MainRecyclerAdapter(private val arrayRV: List<ReminderVariables>?): Recycl
             arrayRV?.get(position)?.totalTime
         ).toInt()
 
-        /*val bar = holder.itemView.recycler_progressBar.findViewById<ProgressBar?>(R.id.recycler_progressBar) as ProgressBar
-
-        val drawable = bar.progressDrawable
-        drawable.setColorFilter(Color.parseColor("#494444"), PorterDuff.Mode.SCREEN)
-        drawable.setColorFilter(Color.parseColor("#EBBA15"), PorterDuff.Mode.MULTIPLY)
-        bar.progressDrawable = drawable
-        holder.itemView.recycler_progressBar.indeterminateTintList = ColorStateList.valueOf(Color.RED)
-*/
-
-
         holder.itemView.recycler_title_txt?.text = arrayRV?.get(position)?.title
         holder.itemView.recycler_timer_txt.text = calculatation.ofTimeInHours(
             arrayRV?.get(position)?.doneTime,

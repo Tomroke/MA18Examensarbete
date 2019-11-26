@@ -22,10 +22,9 @@
     <LinearLayout
         android:id="@+id/viewPager_Container"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/day_selector"
-        android:orientation="horizontal"
-        android:scrollbars="horizontal"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:scrollbars="vertical"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
@@ -38,138 +37,27 @@
             android:id="@+id/tabs_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/day_selector"
+            android:paddingStart="2dp"
+            android:paddingEnd="-4dp"
             app:tabMode="scrollable"
+            app:tabContentStart="10dp"
+            app:tabMaxWidth="56dp"
+            app:tabSelectedTextColor="@color/colorAccent"
             app:tabTextColor="@color/dayTextColour"
+            app:tabTextAppearance="@style/TabsText"
+            app:tabIndicatorHeight="4dp"
+            app:tabIndicatorFullWidth="false"
+            app:tabIndicatorColor="@color/colorPrimary"
             />
+
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/mViewPager"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:background="@color/colorAccent"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/day_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/day_selector"
-        android:orientation="horizontal"
-        android:scrollbars="horizontal"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewPager_Container"
-        >
-
-        <TextView
-            android:id="@+id/monday"
-            android:text="@string/monday_string"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="@color/selectedDayColour"
-            android:layout_weight="1"
-            android:padding="12dp"
-            android:background="@drawable/day_selected"
+            android:elevation="6dp"
             />
-
-        <TextView
-            android:id="@+id/tuesday"
-            android:text="@string/tuesday_string"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="@color/dayTextColour"
-            android:padding="12dp"
-            android:layout_weight="1"
-            />
-
-        <TextView
-            android:id="@+id/wednesday"
-            android:text="@string/wednesday_string"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="@color/dayTextColour"
-            android:padding="12dp"
-            android:layout_weight="1"
-            />
-
-        <TextView
-            android:id="@+id/thursday"
-            android:text="@string/thursday_string"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="@color/dayTextColour"
-            android:padding="12dp"
-            android:layout_weight="1"
-            />
-
-        <TextView
-            android:id="@+id/friday"
-            android:text="@string/friday_string"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="@color/dayTextColour"
-            android:padding="12dp"
-            android:layout_weight="1"
-            />
-
-        <TextView
-            android:id="@+id/saturday"
-            android:text="@string/saturday_string"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="@color/dayTextColour"
-            android:padding="12dp"
-            android:layout_weight="1"
-            />
-
-        <TextView
-            android:id="@+id/sunday"
-            android:text="@string/sunday_string"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clickable="true"
-            android:focusable="true"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:gravity="center"
-            android:textColor="@color/dayTextColour"
-            android:padding="12dp"
-            android:layout_weight="1" />
 
     </LinearLayout>
 
@@ -181,7 +69,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/day_container" >
+        app:layout_constraintTop_toBottomOf="@+id/viewPager_Container" >
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/mRecyclerView"
