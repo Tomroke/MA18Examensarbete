@@ -1,66 +1,58 @@
 package com.example.ma18ea
 
-import android.graphics.drawable.Drawable
+import android.content.Context
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.core.view.children
 import androidx.fragment.app.FragmentTransaction
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.ma18ea.fragments.ReminderMainFragment
 import com.example.ma18ea.room.Converters
 import com.example.ma18ea.room.RemDatabase
 import com.example.ma18ea.room.RemEntity
-import com.example.ma18ea.ui.recyclerView.MainRecyclerAdapter
 import kotlinx.coroutines.*
-import android.os.Handler
-import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager.widget.ViewPager
+import com.example.ma18ea.fragments.HomeScreenFragment
 import com.example.ma18ea.fragments.TemporaryFragment
-import com.example.ma18ea.ui.recyclerView.SizeFragment
+import com.example.ma18ea.ui.adapters.MyFragmentPagerAdapter
 import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.android.synthetic.main.main_activity.*
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 
 class MainActivity : AppCompatActivity()
 {
-    private var TAG:String  = "MAIN ACTIVITY"
+    private var TAG:String  = "MAIN_ACTIVITY"
+    private var context = this
+
 
     //Menu objects
     private lateinit var menu: Menu
     private var menuGroupVisible: Boolean = false
 
-    //Day objects
-    private lateinit var dayItem: LinearLayout
-    private lateinit var previousDay: TextView
-
     //Fragment objects
     private lateinit var reminderMain: ReminderMainFragment
     private lateinit var tempFragment: TemporaryFragment
+    private lateinit var swipeRefresh: SwipeRefreshLayout
 
     //Database
     private var db: RemDatabase? = null
     private var dbDown: ArrayList<RemEntity>? = null
-    private var arrayRV: ArrayList<ReminderVariables> = arrayListOf()
-
-    //RecyclerView objects
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: MainRecyclerAdapter
-    private lateinit var swipeRefresh: SwipeRefreshLayout
+    //private var arrayRV: ArrayList<ReminderVariables> = arrayListOf()
+    private val parentJob = Job()
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + parentJob)
 
     //ViewPage
-    private lateinit var viewPager: ViewPager2
+    private lateinit var viewPager: ViewPager
     private lateinit var tabs: TabLayout
 
 
@@ -70,79 +62,42 @@ class MainActivity : AppCompatActivity()
         setContentView(R.layout.main_activity)
         setSupportActionBar(findViewById(R.id.header_toolbar))
 
-        db = RemDatabase.getInstance(this)
+        tabs = findViewById(R.id.tabs_layout)
+        viewPager = findViewById(R.id.mViewPager)
 
         swipeRefresh = findViewById(R.id.mSwipeRefresh)
         swipeRefresh.setOnRefreshListener { onRefresh() }
 
-        viewPager = findViewById(R.id.mViewPager)
-        viewPagerFrag()
-
-        tabs = findViewById(R.id.tabs_layout)
-        TabLayoutMediator(tabs, viewPager) { tab, position ->
-            tab.text = when(position) {
-                0 -> "Mon"
-                1 -> "Tue"
-                2 -> "Wen"
-                3 -> "Thu"
-                4 -> "Fri"
-                5 -> "Sat"
-                6 -> "Sun"
-                else -> "Template"
-            }
-        }.attach()
-
-        try {
-            recyclerView = findViewById<RecyclerView?>(R.id.mRecyclerView) as RecyclerView
-            recyclerView.layoutManager = LinearLayoutManager(this)
-            adapter = MainRecyclerAdapter(arrayRV)
-            recyclerView.adapter = adapter
-
-            recyclerView.addOnItemClickListener(object : OnItemClickListener {
-                override fun onItemClicked(position: Int, view: View) {
-
-                    reminderMain = ReminderMainFragment.newInstance(arrayRV[position])
-                    supportFragmentManager
-                        .beginTransaction()
-                        .replace(R.id.container, reminderMain)
-                        .addToBackStack(reminderMain.toString())
-                        .setTransitionStyle(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                        .commit()
-                }
-            })} catch (e: Exception) {
-            Log.e(TAG, e.message)
+        coroutineScope.launch(Dispatchers.Main) {
+            setupViewPager(fetchDataAsync(context).await())
         }
-
-        GlobalScope.launch {
-            fetchData()
-        }
-
     }//On Create
 
 
-    private fun viewPagerFrag(){
-        viewPager.adapter
-
-    }
-
     private fun onRefresh() {
         //Log.d(TAG, "Is refreshing")
-        GlobalScope.launch {
-            fetchData()
+        coroutineScope.launch(Dispatchers.Main) {
+            setupViewPager(fetchDataAsync(context).await())
         }
         Handler().postDelayed(Runnable { mSwipeRefresh.isRefreshing = false }, 2000)
     }
 
 
-    private suspend fun fetchData()  {
+    private fun fetchDataAsync(context: Context): Deferred<ArrayList<ReminderVariables>> =
+        coroutineScope.async(Dispatchers.IO) {
+            val arrayRV: ArrayList<ReminderVariables> = arrayListOf()
 
-        arrayRV.clear()
-        dbDown?.clear()
-        delay(1000)
+            dbDown?.clear()
+            arrayRV.clear()
 
-        dbDown = db?.remDao()!!.getAll() as ArrayList<RemEntity>
-        var remTemp: ReminderVariables
-        for (rem in dbDown!!) {
+            db = RemDatabase.getInstance(context)
+            dbDown = db?.remDao()!!.getAll() as ArrayList<RemEntity>
+            /*for (rem in dbDown!!){
+                db?.remDao()!!.delete(rem)
+            }*/
+            //Log.d(TAG, dbDown.toString())
+            var remTemp: ReminderVariables
+            for (rem in dbDown!!) {
                 remTemp = ReminderVariables()
                 remTemp.uid = rem.uid
                 remTemp.title = rem.title.toString()
@@ -151,18 +106,42 @@ class MainActivity : AppCompatActivity()
                 remTemp.days = rem.days?.let { Converters.toList(it) }!!
                 remTemp.description = rem.description.toString()
 
-                 arrayRV.add(remTemp)
+                arrayRV.add(remTemp)
+            }
+            /*Log.d(TAG, dbDown!!.size.toString())
+            Log.d(TAG, "In fetchData " + dbDown.toString())*/
+            Log.d(TAG, "In fetchData $arrayRV")
+
+            return@async arrayRV
         }
 
-        //Clears all data in the database, only for testing.
-        /*for (item in dbDown!!){
-            db?.remDao()?.delete(item)
-        }*/
 
-        //Check if the DB is empty or not
-        //Log.d(TAG, arrayRV.size.toString())
+            private fun setupViewPager(arrayRV: ArrayList<ReminderVariables>) {
 
-    }//fetch Data
+                val adapter = MyFragmentPagerAdapter(supportFragmentManager)
+
+                val monFragment: HomeScreenFragment = HomeScreenFragment.newInstance(arrayRV)
+                val tueFragment: HomeScreenFragment = HomeScreenFragment.newInstance(arrayRV)
+                val wenFragment: HomeScreenFragment = HomeScreenFragment.newInstance(arrayRV)
+                val thuFragment: HomeScreenFragment = HomeScreenFragment.newInstance(arrayRV)
+                val friFragment: HomeScreenFragment = HomeScreenFragment.newInstance(arrayRV)
+                val satFragment: HomeScreenFragment = HomeScreenFragment.newInstance(arrayRV)
+                val sunFragment: HomeScreenFragment = HomeScreenFragment.newInstance(arrayRV)
+
+                adapter.addFragment(monFragment, "Mon")
+                adapter.addFragment(tueFragment, "Tue")
+                adapter.addFragment(wenFragment, "Wen")
+                adapter.addFragment(thuFragment, "Thu")
+                adapter.addFragment(friFragment, "Fri")
+                adapter.addFragment(satFragment, "Sat")
+                adapter.addFragment(sunFragment, "Sun")
+
+                viewPager.adapter = adapter
+
+                tabs.setupWithViewPager(viewPager)
+
+            }
+
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -172,8 +151,9 @@ class MainActivity : AppCompatActivity()
         return true
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        tempFragment = TemporaryFragment.newInstance()
+        tempFragment = TemporaryFragment.newInstance("Temp")
         return when (item.itemId) {
             R.id.new_reminder -> {
                 val rv = ReminderVariables()
@@ -240,36 +220,4 @@ class MainActivity : AppCompatActivity()
         }
     }
 
-
-
-    interface OnItemClickListener {
-        fun onItemClicked(position: Int, view: View)
-    }
-
-    private fun RecyclerView.addOnItemClickListener(onClickListener: OnItemClickListener) {
-        this.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
-            override fun onChildViewDetachedFromWindow(view: View) {
-                view.setOnClickListener(null)
-            }
-
-            override fun onChildViewAttachedToWindow(view: View) {
-                view.setOnClickListener {
-                    val holder = getChildViewHolder(view)
-                    onClickListener.onItemClicked(holder.adapterPosition, view)
-
-                    //Closes the header menu
-                    menu.setGroupVisible(R.id.header_menu_buttons, false)
-                    menuGroupVisible = false
-                }
-            }
-        })
-    }
-
-
 }
-
-
-
-
-
-

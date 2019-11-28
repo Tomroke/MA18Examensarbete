@@ -259,7 +259,6 @@ class ReminderMainFragment : Fragment() {
         return frag
     }
 
-
     override fun onResume() {
         super.onResume()
             fragCom?.days?.observe(this,
@@ -324,41 +323,43 @@ class ReminderMainFragment : Fragment() {
 
         val uidCheck = db?.remDao()?.findByID(paramUID)
         val remE: RemEntity
-        if (uidCheck?.uid == paramUID){
-            //edit data
-            remE = RemEntity(
-                paramUID,
-                paramTitle,
-                paramDoneTime,
-                paramTotalTime,
-                Converters.fromList(paramDays!!),
-                paramDesc
-            )
+        if(!newRem){
+            if (uidCheck?.uid == paramUID){
+                //edit data
+                remE = RemEntity(
+                    paramUID,
+                    paramTitle,
+                    paramDoneTime,
+                    paramTotalTime,
+                    Converters.fromList(paramDays!!),
+                    paramDesc
+                )
 
-            //update Data
-            try {
-                db?.remDao()?.updateData(remE)
-                //Log.d(TAG, "Data edited and saved")
-            } catch (e: Exception) {
-                Log.e(TAG, e.message)
-            }
-        }else {
-            //Create Data
-            remE = RemEntity(
-                GenUID().generateUID(),
-                paramTitle,
-                paramDoneTime,
-                paramTotalTime,
-                Converters.fromList(paramDays!!),
-                paramDesc
-            )
+                //update Data
+                try {
+                    db?.remDao()?.updateData(remE)
+                    //Log.d(TAG, "Data edited and saved")
+                } catch (e: Exception) {
+                    Log.e(TAG, e.message)
+                }
+            }else {
+                //Create Data
+                remE = RemEntity(
+                    GenUID().generateUID(),
+                    paramTitle,
+                    paramDoneTime,
+                    paramTotalTime,
+                    Converters.fromList(paramDays!!),
+                    paramDesc
+                )
 
-            //Add Data
-            try {
-                db?.remDao()?.insertAll(remE)
-                //Log.d(TAG, "Data created and saved")
-            } catch (e: Exception) {
-                Log.e(TAG, e.message)
+                //Add Data
+                try {
+                    db?.remDao()?.insertAll(remE)
+                    //Log.d(TAG, "Data created and saved")
+                } catch (e: Exception) {
+                    Log.e(TAG, e.message)
+                }
             }
         }
 

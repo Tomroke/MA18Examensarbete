@@ -1,22 +1,16 @@
-package com.example.ma18ea.ui.recyclerView
+package com.example.ma18ea.ui.adapters
 
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.PorterDuff
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ProgressBar
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ma18ea.Calculation
-import com.example.ma18ea.ColourProgressBarGradient
 import com.example.ma18ea.R
 import com.example.ma18ea.ReminderVariables
-import com.example.ma18ea.room.RemEntity
 import kotlinx.android.synthetic.main.recycler_view_item.view.*
 
 class MainRecyclerAdapter(private val arrayRV: List<ReminderVariables>?): RecyclerView.Adapter<ViewHolder>() {
-    private val TAG : String = "MainRecyclerAdapter"
+    private val TAG : String = "MAIN_RECYCLER_ADAPTER"
     private lateinit var calculatation: Calculation
 
     override fun getItemCount(): Int {
@@ -35,7 +29,6 @@ class MainRecyclerAdapter(private val arrayRV: List<ReminderVariables>?): Recycl
 
     //This is where you add and change the object in the recycler view
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        //dayButtonArray[6].background.setColorFilter(Color.parseColor(selColour), PorterDuff.Mode.SCREEN)
 
         calculatation = Calculation()
         val progress = calculatation.ofProgressBar(

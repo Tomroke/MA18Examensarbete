@@ -17,9 +17,10 @@ class TemporaryFragment : Fragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance() =
+        fun newInstance(string: String) =
             TemporaryFragment().apply {
                 arguments = Bundle().apply {
+                    putString(ARG_PARAM1, string)
                 }
             }
     }

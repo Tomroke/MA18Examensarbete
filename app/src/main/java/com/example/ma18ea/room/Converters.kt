@@ -26,7 +26,7 @@ class Converters {
         @JvmStatic
         fun toList(data: String): ArrayList<String> {
             var splitStrings: ArrayList<String> = ArrayList()
-            return if (data.endsWith("y") && !data.contains(":")){
+            return if (data.endsWith("y") || data.endsWith("s") && !data.contains(":")){
                 splitStrings.add(data)
                 splitStrings
             }else{

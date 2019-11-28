@@ -19,47 +19,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/viewPager_Container"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabs_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:orientation="vertical"
-        android:scrollbars="vertical"
+        android:background="@drawable/day_selector"
+        android:paddingStart="2dp"
+        android:paddingEnd="-4dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/header_toolbar">
-
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabs_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/day_selector"
-            android:paddingStart="2dp"
-            android:paddingEnd="-4dp"
-            app:tabMode="scrollable"
-            app:tabContentStart="10dp"
-            app:tabMaxWidth="56dp"
-            app:tabSelectedTextColor="@color/colorAccent"
-            app:tabTextColor="@color/dayTextColour"
-            app:tabTextAppearance="@style/TabsText"
-            app:tabIndicatorHeight="4dp"
-            app:tabIndicatorFullWidth="false"
-            app:tabIndicatorColor="@color/colorPrimary"
-            />
-
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/mViewPager"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:elevation="6dp"
-            />
-
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@+id/header_toolbar"
+        app:tabMode="scrollable"
+        app:tabContentStart="10dp"
+        app:tabMaxWidth="56dp"
+        app:tabSelectedTextColor="@color/colorAccent"
+        app:tabTextColor="@color/dayTextColour"
+        app:tabTextAppearance="@style/TabsText"
+        app:tabIndicatorHeight="4dp"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorColor="@color/colorPrimary"
+        />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/mSwipeRefresh"
@@ -67,35 +50,17 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewPager_Container" >
+        app:layout_constraintTop_toBottomOf="@+id/tabs_layout">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/mRecyclerView"
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/mViewPager"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:scrollbars="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="parent" />
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:elevation="4dp" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <FrameLayout
-        android:id="@+id/container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:elevation="5dp"
-        android:theme="@style/Widget.AppCompat.PopupWindow"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:context=".MainActivity" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
