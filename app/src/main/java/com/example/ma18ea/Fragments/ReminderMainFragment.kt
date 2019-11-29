@@ -140,7 +140,7 @@ class ReminderMainFragment : Fragment() {
         minPick.minValue = 0
         minPick.wrapSelectorWheel = true
         minPick.value = min
-        minPick.setOnValueChangedListener { picker, oldVal, newVal ->
+        minPick.setOnValueChangedListener { _, _, newVal ->
             min = newVal
             setNewTime()
         }
@@ -150,7 +150,7 @@ class ReminderMainFragment : Fragment() {
         hourPick.minValue = 0
         hourPick.wrapSelectorWheel = true
         hourPick.value = hour
-        hourPick.setOnValueChangedListener { picker, oldVal, newVal ->
+        hourPick.setOnValueChangedListener { _, _, newVal ->
             hour = newVal
             setNewTime()
         }
@@ -294,7 +294,7 @@ class ReminderMainFragment : Fragment() {
 
     private fun calHoursMins(){
         var minutes = TimeUnit.MILLISECONDS.toMinutes(paramTotalTime)
-        var hours = TimeUnit.MILLISECONDS.toHours(paramTotalTime)
+        val hours = TimeUnit.MILLISECONDS.toHours(paramTotalTime)
         minutes -= (hours * 60)
         min = minutes.toInt()
         hour = hours.toInt()
@@ -362,12 +362,12 @@ class ReminderMainFragment : Fragment() {
                 }
             }
         }
-
     }
 
 
     private fun updateDayButton(){
         if (paramDays?.get(0) != "Select Days"){
+            Log.d(TAG, "PARAMDAYS" + paramDays.toString())
             var days = ""
             for(item in paramDays!!){
                 Log.d(TAG, "")
@@ -376,6 +376,7 @@ class ReminderMainFragment : Fragment() {
                     item == paramDays!!.last() -> ", $item"
                     else -> ", $item"
                 }
+                Log.d(TAG, "DAYS: $days")
                 frag!!.select_days_button.text = days
             }
         }

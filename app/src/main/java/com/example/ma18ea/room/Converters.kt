@@ -1,5 +1,6 @@
 package com.example.ma18ea.room
 
+import android.util.Log
 import androidx.room.TypeConverter
 
 
@@ -26,7 +27,7 @@ class Converters {
         @JvmStatic
         fun toList(data: String): ArrayList<String> {
             var splitStrings: ArrayList<String> = ArrayList()
-            return if (data.endsWith("y") || data.endsWith("s") && !data.contains(":")){
+            return if (!data.endsWith("y") || data.endsWith("s") && !data.contains(":")){
                 splitStrings.add(data)
                 splitStrings
             }else{
